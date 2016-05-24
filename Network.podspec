@@ -8,21 +8,14 @@
 
 Pod::Spec.new do |s|
   s.name             = 'Network'
-  s.version          = '0.1.0'
+  s.version          = '0.1.1'
   s.summary          = 'Using network request easily'
 
-# This description is used to generate tags and improve search results.
-#   * Think: What does it do? Why did you write it? What is the focus?
-#   * Try to keep it short, snappy and to the point.
-#   * Write the description between the DESC delimiters below.
-#   * Finally, don't worry about the indent, CocoaPods strips it!
-
   s.description      = <<-DESC
-TODO: Add long description of the pod here.
+    Using builder to simply the way to create new requests.
                        DESC
 
   s.homepage         = 'https://github.com/lovesunstar/Network'
-  # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
   s.author           = { 'Suen' => 'lovesunstar@sina.com' }
   s.source           = { :git => 'https://github.com/lovesunstar/Network.git', :tag => s.version.to_s }
@@ -31,12 +24,7 @@ TODO: Add long description of the pod here.
   s.ios.deployment_target = '8.0'
 
   s.source_files = 'Network/Classes/**/*'
-  
-  # s.resource_bundles = {
-  #   'Network' => ['Network/Assets/*.png']
-  # }
 
-  # s.public_header_files = 'Pod/Classes/**/*.h'
-  # s.frameworks = 'UIKit', 'MapKit'
+  s.frameworks = 'Foundation'
   s.dependency 'Alamofire', '~> 2.0'
 end
