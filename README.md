@@ -5,10 +5,32 @@
 [![License](https://img.shields.io/cocoapods/l/Network.svg?style=flat)](http://cocoapods.org/pods/Network)
 [![Platform](https://img.shields.io/cocoapods/p/Network.svg?style=flat)](http://cocoapods.org/pods/Network)
 
-## Example
+## Usage
 
-To run the example project, clone the repo, and run `pod install` from the Example directory first.
+### Making a Request
 
+```swift
+import Network
+
+Network.request("http://httpbin.org/get").build()
+Network.request("http://httpbin.org/get").method(.POST).build()
+Network.request("http://httpbin.org/get").get(["foo": "bar"]).build()
+Network.request("http://httpbin.org/post").post(["foo": "bar"]).encoding(.JSON).build()
+Network.request("http://httpbin.org/post").post(["foo": "bar"]).encoding(.JSON).retry(1).build()
+Network.request("http://httpbin.org/post").post(["foo": "bar"]).encoding(.JSON).retry(1).priority(Network.Priority.Low).build()
+
+// Please take a look at Network.swift for more configuration 
+```
+
+### Response Handling
+
+```swift
+
+Network.request("http://httpbin.org/get").build().nt_responseJSON { request, response, responseValue, error in 
+
+}
+
+```
 ## Requirements
 
 ## Installation
