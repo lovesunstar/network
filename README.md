@@ -10,16 +10,18 @@
 ### Making a Request
 
 ```swift
+
 import Network
 
 Network.request("http://httpbin.org/get").build()
 Network.request("http://httpbin.org/get").method(.POST).build()
 Network.request("http://httpbin.org/get").get(["foo": "bar"]).build()
-Network.request("http://httpbin.org/post").post(["foo": "bar"]).encoding(.JSON).build()
+Network.request("http://httpbin.org/post").post(["foo": "bar"]).encoding(.URLEncodedInURL).build()
 Network.request("http://httpbin.org/post").post(["foo": "bar"]).encoding(.JSON).retry(1).build()
 Network.request("http://httpbin.org/post").post(["foo": "bar"]).encoding(.JSON).retry(1).priority(Network.Priority.Low).build()
 
 // Please take a look at Network.swift for more configuration 
+
 ```
 
 ### Response Handling
