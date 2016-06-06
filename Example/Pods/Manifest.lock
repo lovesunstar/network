@@ -1,6 +1,6 @@
 PODS:
   - Alamofire (2.0.2)
-  - Network (0.1.0):
+  - Network (0.1.1):
     - Alamofire (~> 2.0)
 
 DEPENDENCIES:
@@ -12,6 +12,6 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Alamofire: 8edbab00802a752bb5240cc2abe70e7e881488ad
-  Network: 3395f74f8293dcacd5519b75857a947f422125de
+  Network: 1ac7e8c1d2f4af574d773383c4077ac5ad7613f0
 
 COCOAPODS: 0.39.0
