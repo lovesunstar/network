@@ -13,12 +13,12 @@
 
 import Network
 
-Network.request("http://httpbin.org/get").build()
-Network.request("http://httpbin.org/get").method(.POST).build()
-Network.request("http://httpbin.org/get").get(["foo": "bar"]).build()
-Network.request("http://httpbin.org/post").post(["foo": "bar"]).encoding(.URLEncodedInURL).build()
-Network.request("http://httpbin.org/post").post(["foo": "bar"]).encoding(.JSON).retry(1).build()
-Network.request("http://httpbin.org/post").post(["foo": "bar"]).encoding(.JSON).retry(1).priority(Network.Priority.Low).build()
+Network.request("https://httpbin.org/get").build()
+Network.request("https://httpbin.org/get").query(["foo": "bar"]).build()
+Network.request("https://httpbin.org/get").headers(["Custom-Content-Type": "application/json; encrypted=1"]).build()
+Network.request("https://httpbin.org/post").post(["foo": "bar"]).encoding(.URLEncodedInURL).build()
+Network.request("https://httpbin.org/post").post(["foo": "bar"]).encoding(.JSON).retry(1).build()
+Network.request("https://httpbin.org/post").post(["foo": "bar"]).encoding(.JSON).priority(Network.Priority.Low).build()
 
 // Please take a look at Network.swift for more configuration 
 
@@ -28,9 +28,11 @@ Network.request("http://httpbin.org/post").post(["foo": "bar"]).encoding(.JSON).
 
 ```swift
 
-Network.request("http://httpbin.org/get").build().nt_responseJSON { request, response, responseValue, error in 
+Network.request("https://httpbin.org/get").build()?.responseJSON { request, response, responseValue, error in 
 
 }
+
+let (response, responseData, error) = Network.request("https://httpbin.org/post").query(["foo": "bar"]).post(["encode": "json"]).encoding(.JSON).syncResponseJSON()
 
 ```
 ## Requirements
