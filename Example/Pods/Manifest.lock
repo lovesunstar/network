@@ -1,7 +1,7 @@
 PODS:
-  - Alamofire (2.0.2)
-  - Network (0.1.1):
-    - Alamofire (~> 2.0)
+  - Alamofire (3.4.0)
+  - Network (0.2.1):
+    - Alamofire (~> 3.0)
 
 DEPENDENCIES:
   - Network (from `../`)
@@ -11,7 +11,9 @@ EXTERNAL SOURCES:
     :path: ../
 
 SPEC CHECKSUMS:
-  Alamofire: 8edbab00802a752bb5240cc2abe70e7e881488ad
-  Network: 1ac7e8c1d2f4af574d773383c4077ac5ad7613f0
+  Alamofire: c19a627cefd6a95f840401c49ab1f124e07f54ee
+  Network: 1dc8119a805bbde3778a094b1606d90069e8a954
 
-COCOAPODS: 0.39.0
+PODFILE CHECKSUM: 4cfd95799dcced0659cd8a6f3e69d8c6e0c1a575
+
+COCOAPODS: 1.0.1

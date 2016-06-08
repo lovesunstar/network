@@ -1,6 +1,6 @@
 {
   "name": "Network",
-  "version": "0.1.1",
+  "version": "0.2.1",
   "summary": "Using network request easily",
   "description": "Using builder to simply the way to create new requests.",
   "homepage": "https://github.com/lovesunstar/Network",
@@ -13,7 +13,7 @@
   },
   "source": {
     "git": "https://github.com/lovesunstar/Network.git",
-    "tag": "0.1.1"
+    "tag": "0.2.1"
   },
   "social_media_url": "https://twitter.com/_lovesunstar",
   "platforms": {
@@ -23,7 +23,7 @@
   "frameworks": "Foundation",
   "dependencies": {
     "Alamofire": [
-      "~> 2.0"
+      "~> 3.0"
     ]
   }
 }

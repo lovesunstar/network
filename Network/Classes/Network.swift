@@ -75,7 +75,8 @@ public class Request {
         queue: dispatch_queue_t? = nil,
         options: NSJSONReadingOptions,
         completionHandler: ((NSURLRequest?, NSHTTPURLResponse?, AnyObject?, NSError?) -> Void)?) {
-        let requestCompletionHandler: ((NSURLRequest?, NSHTTPURLResponse?, Alamofire.Result<AnyObject>) -> Void) = { (request, response, result) -> Void in
+        request.responseJSON(queue: queue, options: options) { (results) in
+            let request = results.request, response = results.response, result = results.result
             if let urlRequest = request {
                 //
                 let timestamp = self.httpBuilder.requestTimestamp
@@ -92,20 +93,15 @@ public class Request {
                         return
                     }
                 }
-                if let err = result.error as? NSError {
+                if let err = result.error {
                     if err.code == NSURLErrorCancelled {
                         cancelled = true
                     }
                 }
             }
             if !cancelled {
-                completionHandler?(request, response, result.value, result.error as? NSError)
+                completionHandler?(request, response, result.value, result.error)
             }
-        }
-        if let queue = queue {
-            request.response(queue: queue, responseSerializer: Alamofire.Request.JSONResponseSerializer(options: options), completionHandler: requestCompletionHandler)
-        } else {
-            request.responseJSON(options: options, completionHandler: requestCompletionHandler)
         }
     }
 }
