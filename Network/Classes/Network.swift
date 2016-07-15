@@ -30,7 +30,7 @@ public protocol NetworkClientProtocol: NSObjectProtocol {
     */
     static func compressDataUsingGZip(inout data: NSData) -> Bool
     
-    static func willProcessRequestWithURL(inout URLString: String, inout headers: [String: String])
+    static func willProcessRequestWithURL(inout URLString: String, inout headers: [String: String], inout parameters: [String: AnyObject]?)
     
     static func willProcessResponseWithRequest(request: NSURLRequest, timestamp: NSTimeInterval, duration: NSTimeInterval, responseData: AnyObject?, error: ErrorType?, URLResponse: NSHTTPURLResponse?)
 }
@@ -401,7 +401,8 @@ public class RequestBuilder: HTTPBuilder {
         }
         headers += vheaders
         var URLString = absoluteString as String
-        Network.client?.willProcessRequestWithURL(&URLString, headers: &headers)
+        var postParameters = self.postParameters
+        Network.client?.willProcessRequestWithURL(&URLString, headers: &headers, parameters: &postParameters)
         
         guard let mutableURLRequest = mutableRequestWithURLString(URLString, method: HTTPMethod, headers: headers) else {
             return nil
@@ -411,7 +412,7 @@ public class RequestBuilder: HTTPBuilder {
             mutableURLRequest.timeoutInterval = timeoutInterval
         }
         mutableURLRequest.cachePolicy = vcachePolicy
-        let encodedURLRequest = parameterEncoding.encode(mutableURLRequest, parameters: self.postParameters).0
+        let encodedURLRequest = parameterEncoding.encode(mutableURLRequest, parameters: postParameters).0
         // GZIP Compress
         if vgzipEnabled {
             if let HTTPBody = encodedURLRequest.HTTPBody, client = Network.client {
@@ -516,11 +517,12 @@ public class UploadBuilder: HTTPBuilder {
         }
         headers += vheaders
         var URLString = absoluteString as String
-        Network.client?.willProcessRequestWithURL(&URLString, headers: &headers)
+        var postParameters = self.postParameters
+        Network.client?.willProcessRequestWithURL(&URLString, headers: &headers, parameters: &postParameters)
         
         let dataParts = self.dataParts
         let fileParts = self.fileParts
-        let postParts = self.postParameters
+        let postParts = postParameters
         
         Alamofire.upload(
             .POST,
