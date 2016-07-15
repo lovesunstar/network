@@ -184,7 +184,13 @@ public struct Network {
     public struct ProxyItem: Equatable, Hashable {
         let host: String
         let port: String
-        let HTTPOnly = true
+        let HTTPOnly: Bool
+        
+        public init(host: String, port: String, HTTPOnly: Bool = true) {
+            self.host = host
+            self.port = port
+            self.HTTPOnly = HTTPOnly
+        }
         
         public var hashValue: Int {
             return host.hashValue ^ port.hashValue
