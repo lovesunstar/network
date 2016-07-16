@@ -21,16 +21,20 @@ class ViewController: UIViewController {
         print("Begin synchronized request2")
         print(Network.request("https://httpbin.org/post").query(["key2": "value2"]).post(["encode": "json"]).encoding(.JSON).syncResponseJSON())
         
-        Network.request("https://httpbin.org/get").query(["foo": "bar"]).build()?.responseJSON(completionHandler: { (_, URLResponse, JSONData, error) -> Void in
-            print(URLResponse, JSONData, error)
+        let request = Network.request("https://httpbin.org/get").query(["foo": "bar"]).build()
+        
+        request?.responseJSON(completionHandler: { (_, URLResponse, JSONData, error) -> Void in
+            print("Request3", URLResponse, JSONData, error)
         })
         
+        request?.cancel()
+        
         Network.request("https://httpbin.org/post").query(["foo": "bar"]).post(["foo_p": "bar_p"]).build()?.responseJSON(completionHandler: { (_, URLResponse, JSONData, error) -> Void in
-            print(URLResponse, JSONData, error)
+            print("Request4", URLResponse, JSONData, error)
         })
         
         Network.request("https://httpbin.org/post").query(["foo": "bar"]).post(["foo_p": "bar_p"]).encoding(.JSON).build()?.responseJSON(completionHandler: { (_, URLResponse, JSONData, error) -> Void in
-            print(URLResponse, JSONData, error)
+            print("Request5", URLResponse, JSONData, error)
         })
         
         Network.request("https://httpbin.org/user-agent").headers(["User-Agent": "(Network 0.1.1; Foo bar)"]).build()?.responseJSON(completionHandler: { (_, URLResponse, JSONData, error) -> Void in

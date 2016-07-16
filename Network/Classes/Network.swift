@@ -70,6 +70,10 @@ public class Request {
             return self
     }
     
+    public func cancel() {
+        
+    }
+    
     private func responseJSONWithRequest(
         request: Alamofire.Request,
         queue: dispatch_queue_t? = nil,
@@ -128,6 +132,10 @@ public class NormalRequest: Request {
             responseJSONWithRequest(request, queue: queue, options: options, completionHandler: completionHandler)
         return self
     }
+    
+    public override func cancel() {
+        request.cancel()
+    }
 }
 
 public class UploadRequest: Request {
@@ -159,6 +167,10 @@ public class UploadRequest: Request {
             self.completionHandler = completionHandler
         }
         return self
+    }
+    
+    public override func cancel() {
+        request?.cancel()
     }
     
     private func startUploading() {
