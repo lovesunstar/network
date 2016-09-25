@@ -21,10 +21,10 @@ Pod::Spec.new do |s|
   s.source           = { :git => 'https://github.com/lovesunstar/Network.git', :tag => s.version.to_s }
   s.social_media_url = 'https://twitter.com/_lovesunstar'
 
-  s.ios.deployment_target = '9.0', '~> 4.0.1'
+  s.ios.deployment_target = '9.0'
 
   s.source_files = 'Network/Classes/**/*'
 
   s.frameworks = 'Foundation'
-  s.dependency 'Alamofire'
+  s.dependency 'Alamofire', '~> 4.0.1'
 end
