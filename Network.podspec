@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'Network'
-  s.version          = '1.0.1'
+  s.version          = '2.0'
   s.summary          = 'Using network request easily'
 
   s.description      = <<-DESC
@@ -26,5 +26,5 @@ Pod::Spec.new do |s|
   s.source_files = 'Network/Classes/**/*'
 
   s.frameworks = 'Foundation'
-  s.dependency 'Alamofire', '~> 3.0'
+  s.dependency 'Alamofire', '~> 4.0'
 end

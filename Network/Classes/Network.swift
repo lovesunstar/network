@@ -28,15 +28,15 @@ public protocol NetworkClientProtocol: NSObjectProtocol {
     /**
      - returns: compressed
     */
-    static func compressDataUsingGZip(inout data: NSData) -> Bool
+    static func compressDataUsingGZip(_ data: inout Data) -> Bool
     
-    static func willProcessRequestWithURL(inout URLString: String, inout headers: [String: String], inout parameters: [String: AnyObject]?)
+    static func willProcessRequestWithURL(_ URLString: inout String, headers: inout [String: String], parameters: inout [String: AnyObject]?)
     
-    static func willProcessResponseWithRequest(request: NSURLRequest, timestamp: NSTimeInterval, duration: NSTimeInterval, responseData: AnyObject?, error: ErrorType?, URLResponse: NSHTTPURLResponse?)
+    static func willProcessResponseWithRequest(_ request: URLRequest, timestamp: TimeInterval, duration: TimeInterval, responseData: AnyObject?, error: Error?, URLResponse: HTTPURLResponse?)
 }
 
 
-private func isErrorEnabledToRetry(error: ErrorType) -> Bool {
+private func isErrorEnabledToRetry(_ error: Error) -> Bool {
     let nsError = error as NSError
     if nsError.code == NSURLErrorCancelled {
         return false
@@ -45,40 +45,40 @@ private func isErrorEnabledToRetry(error: ErrorType) -> Bool {
     return weakConnects.contains(nsError.code)
 }
 
-public class Request {
+open class Request {
     
-    private var httpBuilder: HTTPBuilder {
+    fileprivate var httpBuilder: HTTPBuilder {
         fatalError("Sub class must implemention")
     }
     
-    private init() {
+    fileprivate init() {
         
     }
     
-    private func canRetryWithError(error: ErrorType) -> Bool {
+    fileprivate func canRetryWithError(_ error: Error) -> Bool {
         return isErrorEnabledToRetry(error) && retriedTimes < maximumNumberOfRetryTimes
     }
     
-    private var retriedTimes: UInt16 = 0
-    private var maximumNumberOfRetryTimes: UInt16 = 0
+    fileprivate var retriedTimes: UInt16 = 0
+    fileprivate var maximumNumberOfRetryTimes: UInt16 = 0
     
-    public func responseJSON(
-        queue queue: dispatch_queue_t? = nil,
-        options: NSJSONReadingOptions = .AllowFragments,
-        completionHandler: ((NSURLRequest?, NSHTTPURLResponse?, AnyObject?, NSError?) -> Void)?)
+    open func responseJSON(
+        queue: DispatchQueue? = nil,
+        options: JSONSerialization.ReadingOptions = .allowFragments,
+        completionHandler: ((URLRequest?, HTTPURLResponse?, AnyObject?, NSError?) -> Void)?)
         -> Self {
             return self
     }
     
-    public func cancel() {
+    open func cancel() {
         
     }
     
-    private func responseJSONWithRequest(
-        request: Alamofire.Request,
-        queue: dispatch_queue_t? = nil,
-        options: NSJSONReadingOptions,
-        completionHandler: ((NSURLRequest?, NSHTTPURLResponse?, AnyObject?, NSError?) -> Void)?) {
+    fileprivate func responseJSONWithRequest(
+        _ request: Alamofire.Request,
+        queue: DispatchQueue? = nil,
+        options: JSONSerialization.ReadingOptions,
+        completionHandler: ((URLRequest?, HTTPURLResponse?, AnyObject?, NSError?) -> Void)?) {
         request.responseJSON(queue: queue, options: options) { (results) in
             let request = results.request, response = results.response, result = results.result
             if let urlRequest = request {
@@ -110,56 +110,56 @@ public class Request {
     }
 }
 
-public class NormalRequest: Request {
+open class NormalRequest: Request {
     
-    private let request: Alamofire.Request
-    private let builder: RequestBuilder
+    fileprivate let request: Alamofire.Request
+    fileprivate let builder: RequestBuilder
     
-    private override var httpBuilder: HTTPBuilder {
+    fileprivate override var httpBuilder: HTTPBuilder {
         return builder
     }
     
-    private init(builder: RequestBuilder, request: Alamofire.Request) {
+    fileprivate init(builder: RequestBuilder, request: Alamofire.Request) {
         self.builder = builder
         self.request = request
         super.init()
     }
     
-    override public func responseJSON(
-        queue queue: dispatch_queue_t? = nil,
-        options: NSJSONReadingOptions,
-        completionHandler: ((NSURLRequest?, NSHTTPURLResponse?, AnyObject?, NSError?) -> Void)?) -> Self {
+    override open func responseJSON(
+        queue: DispatchQueue? = nil,
+        options: JSONSerialization.ReadingOptions,
+        completionHandler: ((URLRequest?, HTTPURLResponse?, AnyObject?, NSError?) -> Void)?) -> Self {
             responseJSONWithRequest(request, queue: queue, options: options, completionHandler: completionHandler)
         return self
     }
     
-    public override func cancel() {
+    open override func cancel() {
         request.cancel()
     }
 }
 
-public class UploadRequest: Request {
+open class UploadRequest: Request {
     
-    private var request: Alamofire.Request?
+    fileprivate var request: Alamofire.Request?
     
-    private let builder: UploadBuilder
+    fileprivate let builder: UploadBuilder
     
-    private override var httpBuilder: HTTPBuilder {
+    fileprivate override var httpBuilder: HTTPBuilder {
         return builder
     }
     
-    private var options: NSJSONReadingOptions = .AllowFragments
-    private var completionHandler: ((NSURLRequest?, NSHTTPURLResponse?, AnyObject?, NSError?) -> Void)?
+    fileprivate var options: JSONSerialization.ReadingOptions = .allowFragments
+    fileprivate var completionHandler: ((URLRequest?, HTTPURLResponse?, AnyObject?, NSError?) -> Void)?
     
-    private init(builder: UploadBuilder) {
+    fileprivate init(builder: UploadBuilder) {
         self.builder = builder
         super.init()
     }
     
-    public override func responseJSON(
-        queue queue: dispatch_queue_t? = nil,
-        options: NSJSONReadingOptions,
-        completionHandler: ((NSURLRequest?, NSHTTPURLResponse?, AnyObject?, NSError?) -> Void)?) -> Self {
+    open override func responseJSON(
+        queue: DispatchQueue? = nil,
+        options: JSONSerialization.ReadingOptions,
+        completionHandler: ((URLRequest?, HTTPURLResponse?, AnyObject?, NSError?) -> Void)?) -> Self {
         if let request = request {
             responseJSONWithRequest(request, options: options, completionHandler: completionHandler)
         } else {
@@ -169,17 +169,17 @@ public class UploadRequest: Request {
         return self
     }
     
-    public override func cancel() {
+    open override func cancel() {
         request?.cancel()
     }
     
-    private func startUploading() {
+    fileprivate func startUploading() {
         if let request = request {
             responseJSONWithRequest(request, options: self.options, completionHandler: self.completionHandler)
         }
     }
     
-    private func notifyError(error: ErrorType) {
+    fileprivate func notifyError(_ error: Error) {
         completionHandler?(nil, nil, nil, error as NSError)
     }
 }
@@ -187,10 +187,10 @@ public class UploadRequest: Request {
 public struct Network {
     
     public enum Priority: Float {
-        case Background = 0
-        case Low = 0.25
-        case Default = 0.5
-        case High = 0.75
+        case background = 0
+        case low = 0.25
+        case `default` = 0.5
+        case high = 0.75
     }
     
     public struct ProxyItem: Equatable, Hashable {
@@ -214,10 +214,10 @@ public struct Network {
             if let item = proxyItem {
                 if proxyItem != oldValue {
                     let port = Int(item.port) ?? 8888
-                    var proxyConfiguration = [NSObject: AnyObject]()
-                    proxyConfiguration[kCFNetworkProxiesHTTPProxy] = item.host
-                    proxyConfiguration[kCFNetworkProxiesHTTPPort] = port
-                    proxyConfiguration[kCFNetworkProxiesHTTPEnable] = 1
+                    var proxyConfiguration = [AnyHashable: Any]()
+                    proxyConfiguration[kCFNetworkProxiesHTTPProxy as AnyHashable] = item.host
+                    proxyConfiguration[kCFNetworkProxiesHTTPPort as AnyHashable] = port
+                    proxyConfiguration[kCFNetworkProxiesHTTPEnable as AnyHashable] = 1
                     let sessionConfiguration = AFManager.sharedInstance.session.configuration
                     sessionConfiguration.connectionProxyDictionary = proxyConfiguration
                     manager = AFManager(configuration: sessionConfiguration)
@@ -228,118 +228,118 @@ public struct Network {
         }
     }
     
-    public static func request(URL: String) -> RequestBuilder {
+    public static func request(_ URL: String) -> RequestBuilder {
         return RequestBuilder(URL: URL)
     }
     
-    public static func upload(URL: String) -> UploadBuilder {
+    public static func upload(_ URL: String) -> UploadBuilder {
         return UploadBuilder(URL: URL)
     }
     
     public static var client: NetworkClientProtocol.Type?
     
-    private static var manager = AFManager.sharedInstance
+    fileprivate static var manager = AFManager.sharedInstance
 }
 
-public class HTTPBuilder: NSObject {
+open class HTTPBuilder: NSObject {
     
-    private init(URL: String) {
+    fileprivate init(URL: String) {
         URLString = URL
         super.init()
     }
     
-    public func method(method: Alamofire.Method) -> Self {
+    open func method(_ method: Alamofire.Method) -> Self {
         HTTPMethod = method
         return self
     }
     
-    public func appendCommonParameters(append: Bool) -> Self {
+    open func appendCommonParameters(_ append: Bool) -> Self {
         vappendCommonParameters = append
         return self
     }
     
-    public func query(parameters: [String : AnyObject]?) -> Self {
+    open func query(_ parameters: [String : AnyObject]?) -> Self {
         queryParameters = parameters
         return self
     }
     
-    public func post(parameters: [String : AnyObject]?) -> Self {
+    open func post(_ parameters: [String : AnyObject]?) -> Self {
         postParameters = parameters
-        if let p = parameters where !p.isEmpty {
+        if let p = parameters , !p.isEmpty {
             method(.POST)
         }
         return self
     }
     
-    public func headers(headers: [String : String]?) -> Self {
+    open func headers(_ headers: [String : String]?) -> Self {
         vheaders = headers
         return self
     }
 
-    public func gzipEnabled(enabled: Bool) -> Self {
+    open func gzipEnabled(_ enabled: Bool) -> Self {
         vgzipEnabled = enabled
         return self
     }
     
-    public func retry(retryTimes: UInt16) -> Self {
+    open func retry(_ retryTimes: UInt16) -> Self {
         self.retryTimes = retryTimes
         return self
     }
     
-    public func timeout(timeout: NSTimeInterval) -> Self {
+    open func timeout(_ timeout: TimeInterval) -> Self {
         timeoutInterval = timeout
         return self
     }
     
-    public func cachePolicy(policy: NSURLRequestCachePolicy) -> Self {
+    open func cachePolicy(_ policy: NSURLRequest.CachePolicy) -> Self {
         vcachePolicy = policy
         return self
     }
     
-    public func priority(priority: Network.Priority) -> Self {
+    open func priority(_ priority: Network.Priority) -> Self {
         vpriority = priority
         return self
     }
     
-    private func appendQueryParameters(parameters: [String : AnyObject]?, toString absoluteString: NSMutableString) {
-        guard let parameters = parameters where !parameters.isEmpty else {
+    fileprivate func appendQueryParameters(_ parameters: [String : AnyObject]?, toString absoluteString: NSMutableString) {
+        guard let parameters = parameters , !parameters.isEmpty else {
             return
         }
         var components: [(String, String)] = []
-        for key in Array(parameters.keys).sort(<) {
+        for key in Array(parameters.keys).sorted(by: <) {
             let value = parameters[key]!
             components += Alamofire.ParameterEncoding.URLEncodedInURL.queryComponents(key, value)
         }
-        let query = (components.map { "\($0)=\($1)" } as [String]).joinWithSeparator("&")
+        let query = (components.map { "\($0)=\($1)" } as [String]).joined(separator: "&")
         if !query.isEmpty {
-            if absoluteString.containsString("?") {
-                absoluteString.appendString("&")
+            if absoluteString.contains("?") {
+                absoluteString.append("&")
             } else {
-                absoluteString.appendString("?")
+                absoluteString.append("?")
             }
-            absoluteString.appendString(query)
+            absoluteString.append(query)
         }
     }
     
-    public func build() -> Request? {
+    open func build() -> Request? {
         return nil
     }
     
-    private var URLString: String
-    private var vheaders: [String : String]?
-    private var queryParameters: [String : AnyObject]?
-    private var parameterEncoding: ParameterEncoding = .URL
-    private var vappendCommonParameters = true
-    private var retryTimes: UInt16 = 0
-    private var timeoutInterval: NSTimeInterval = 30
-    private var vcachePolicy = NSURLRequestCachePolicy.UseProtocolCachePolicy
-    private var vpriority = Network.Priority.Default
-    private var vgzipEnabled = true
+    fileprivate var URLString: String
+    fileprivate var vheaders: [String : String]?
+    fileprivate var queryParameters: [String : AnyObject]?
+    fileprivate var parameterEncoding: ParameterEncoding = .URL
+    fileprivate var vappendCommonParameters = true
+    fileprivate var retryTimes: UInt16 = 0
+    fileprivate var timeoutInterval: TimeInterval = 30
+    fileprivate var vcachePolicy = NSURLRequest.CachePolicy.useProtocolCachePolicy
+    fileprivate var vpriority = Network.Priority.default
+    fileprivate var vgzipEnabled = true
     /// 发送请求的时间（unix时间戳）
-    private var requestTimestamp: NSTimeInterval = 0
+    fileprivate var requestTimestamp: TimeInterval = 0
     
-    private var HTTPMethod: AFMethod = .GET
-    private var postParameters: [String : AnyObject]?
+    fileprivate var HTTPMethod: AFMethod = .GET
+    fileprivate var postParameters: [String : AnyObject]?
 }
 
 /**
@@ -359,42 +359,42 @@ public class HTTPBuilder: NSObject {
  .append(commonParameters)?<br />
  .pack() unwrap?.pon_response { _, _, results, error in logic }
  */
-public class RequestBuilder: HTTPBuilder {
+open class RequestBuilder: HTTPBuilder {
     
     override init(URL: String) {
         super.init(URL: URL)
     }
     
-    private static var manager = AFManager.sharedInstance
-    private static func resetManager() {
+    fileprivate static var manager = AFManager.sharedInstance
+    fileprivate static func resetManager() {
         manager = AFManager.sharedInstance
     }
     
-    public func encoding(encoding: ParameterEncoding) -> Self {
+    open func encoding(_ encoding: ParameterEncoding) -> Self {
         parameterEncoding = encoding
         return self
     }
     
     /// NOTE: never use this way on main thread
-    public func syncResponseJSON(options options: NSJSONReadingOptions = .AllowFragments) -> (NSURLResponse?, AnyObject?, NSError?) {
+    open func syncResponseJSON(options: JSONSerialization.ReadingOptions = .allowFragments) -> (URLResponse?, AnyObject?, NSError?) {
         if let request = build() {
-            var response: NSURLResponse?
+            var response: URLResponse?
             var responseData: AnyObject?
             var responseError: NSError?
-            let semaphore = dispatch_semaphore_create(0)
-            request.responseJSON(queue: dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), options: options, completionHandler: { (_, URLResponse, data, error) -> Void in
+            let semaphore = DispatchSemaphore(value: 0)
+            request.responseJSON(queue: DispatchQueue.global(priority: DispatchQueue.GlobalQueuePriority.default), options: options, completionHandler: { (_, URLResponse, data, error) -> Void in
                 response = URLResponse
                 responseData = data
                 responseError = error
-                dispatch_semaphore_signal(semaphore)
+                semaphore.signal()
             })
-            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
+            semaphore.wait(timeout: DispatchTime.distantFuture)
             return (response, responseData, responseError)
         }
         return (nil, nil, nil)
     }
     
-    public override func build() -> Request? {
+    open override func build() -> Request? {
         if self.URLString.utf16.count == 0 {
             return nil
         }
@@ -419,7 +419,7 @@ public class RequestBuilder: HTTPBuilder {
         guard let mutableURLRequest = mutableRequestWithURLString(URLString, method: HTTPMethod, headers: headers) else {
             return nil
         }
-        requestTimestamp = NSDate().timeIntervalSince1970
+        requestTimestamp = Date().timeIntervalSince1970
         if timeoutInterval != 0 {
             mutableURLRequest.timeoutInterval = timeoutInterval
         }
@@ -427,7 +427,7 @@ public class RequestBuilder: HTTPBuilder {
         let encodedURLRequest = parameterEncoding.encode(mutableURLRequest, parameters: postParameters).0
         // GZIP Compress
         if vgzipEnabled {
-            if let HTTPBody = encodedURLRequest.HTTPBody, client = Network.client {
+            if let HTTPBody = encodedURLRequest.HTTPBody, let client = Network.client {
                 var newHTTPBody = HTTPBody
                 let compressed = client.compressDataUsingGZip(&newHTTPBody)
                 if newHTTPBody.length > 0 && compressed {
@@ -443,11 +443,11 @@ public class RequestBuilder: HTTPBuilder {
         return resultRequest
     }
     
-    private func mutableRequestWithURLString(URLString: String, method: AFMethod, headers: [String : AnyObject]?) -> NSMutableURLRequest? {
-        guard let URL = NSURL(string: URLString) else {
+    fileprivate func mutableRequestWithURLString(_ URLString: String, method: AFMethod, headers: [String : AnyObject]?) -> NSMutableURLRequest? {
+        guard let URL = URL(string: URLString) else {
             return nil
         }
-        let mutableURLRequest = NSMutableURLRequest(URL: URL)
+        let mutableURLRequest = NSMutableURLRequest(url: URL)
         mutableURLRequest.HTTPMethod = method.rawValue
         if let headers = headers {
             for (headerField, headerValue) in headers {
@@ -460,9 +460,9 @@ public class RequestBuilder: HTTPBuilder {
     }
 }
 
-public class UploadBuilder: HTTPBuilder {
+open class UploadBuilder: HTTPBuilder {
     
-    private class Part {
+    fileprivate class Part {
         var name: String
         var fileName: String?
         var mimeType: String?
@@ -472,17 +472,17 @@ public class UploadBuilder: HTTPBuilder {
         }
     }
     
-    private class Data: Part {
+    fileprivate class Data: Part {
         
-        var data: NSData
+        var data: Foundation.Data
         
-        init(name: String, data: NSData) {
+        init(name: String, data: Foundation.Data) {
             self.data = data
             super.init(name: name)
         }
     }
     
-    public func append(data data: NSData, name: String, fileName: String? = nil, mimeType: String? = nil) -> Self {
+    open func append(data: Foundation.Data, name: String, fileName: String? = nil, mimeType: String? = nil) -> Self {
         let part = Data(name: name, data: data)
         part.fileName = fileName
         part.mimeType = mimeType
@@ -490,16 +490,16 @@ public class UploadBuilder: HTTPBuilder {
         return self
     }
     
-    private class File: Part {
-        var fileURL: NSURL
+    fileprivate class File: Part {
+        var fileURL: URL
         
-        init(name: String, fileURL: NSURL) {
+        init(name: String, fileURL: URL) {
             self.fileURL = fileURL
             super.init(name: name)
         }
     }
     
-    public func append(file fileURL: NSURL, name: String, fileName: String, mimeType: String? = nil) -> Self {
+    open func append(file fileURL: URL, name: String, fileName: String, mimeType: String? = nil) -> Self {
         let part = File(name: name, fileURL: fileURL)
         part.fileName = fileName
         part.mimeType = mimeType
@@ -507,7 +507,7 @@ public class UploadBuilder: HTTPBuilder {
         return self
     }
 
-    public override func build() -> Request? {
+    open override func build() -> Request? {
         if self.URLString.utf16.count == 0 {
             return nil
         }
@@ -562,7 +562,7 @@ public class UploadBuilder: HTTPBuilder {
         return request
     }
 
-    private func appendData(data: Data, toMultipartFormData multipartFormData: Alamofire.MultipartFormData) {
+    fileprivate func appendData(_ data: Data, toMultipartFormData multipartFormData: Alamofire.MultipartFormData) {
         if let mimeType = data.mimeType {
             if let fileName = data.fileName {
                 multipartFormData.appendBodyPart(data: data.data, name: data.name, fileName: fileName, mimeType: mimeType)
@@ -574,23 +574,23 @@ public class UploadBuilder: HTTPBuilder {
         }
     }
     
-    private func appendFile(file: File, toMultipartFormData multipartFormData: Alamofire.MultipartFormData) {
+    fileprivate func appendFile(_ file: File, toMultipartFormData multipartFormData: Alamofire.MultipartFormData) {
         if let mimeType = file.mimeType {
             if let fileName = file.fileName {
                 multipartFormData.appendBodyPart(fileURL: file.fileURL, name: file.name, fileName: fileName, mimeType: mimeType)
             } else {
-                multipartFormData.appendBodyPart(fileURL: file.fileURL, name: file.name, fileName: "\(NSDate().timeIntervalSince1970)", mimeType: mimeType)
+                multipartFormData.appendBodyPart(fileURL: file.fileURL, name: file.name, fileName: "\(Date().timeIntervalSince1970)", mimeType: mimeType)
             }
         } else {
             multipartFormData.appendBodyPart(fileURL: file.fileURL, name: file.name)
         }
     }
     
-    private var dataParts = [Data]()
-    private var fileParts = [File]()
+    fileprivate var dataParts = [Data]()
+    fileprivate var fileParts = [File]()
 }
 
-func +=<KeyType, ValueType>(inout lhs: Dictionary<KeyType, ValueType>, rhs: Dictionary<KeyType, ValueType>?) {
+func +=<KeyType, ValueType>(lhs: inout Dictionary<KeyType, ValueType>, rhs: Dictionary<KeyType, ValueType>?) {
     if let rhs = rhs {
         for (k, v) in rhs {
             lhs[k] = v
@@ -608,10 +608,10 @@ func +<KeyType, ValueType>(lhs: [KeyType : ValueType], rhs: [KeyType : ValueType
     return results
 }
 
-func -=<KeyType, ValueType>(inout lhs: Dictionary<KeyType, ValueType>, rhs: Dictionary<KeyType, ValueType>?) {
+func -=<KeyType, ValueType>(lhs: inout Dictionary<KeyType, ValueType>, rhs: Dictionary<KeyType, ValueType>?) {
     if let rhs = rhs {
         for (k, _) in rhs {
-            lhs.removeValueForKey(k)
+            lhs.removeValue(forKey: k)
         }
     }
 }
@@ -620,7 +620,7 @@ func -<KeyType, ValueType>(lhs: [KeyType : ValueType], rhs: [KeyType : ValueType
     var results = lhs
     if let rhs = rhs {
         for (k, _) in rhs {
-            results.removeValueForKey(k)
+            results.removeValue(forKey: k)
         }
     }
     return results
