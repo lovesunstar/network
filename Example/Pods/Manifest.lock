@@ -1,0 +1,19 @@
+PODS:
+  - Alamofire (4.0.1)
+  - Network (3.0.1):
+    - Alamofire
+
+DEPENDENCIES:
+  - Network (from `../`)
+
+EXTERNAL SOURCES:
+  Network:
+    :path: ../
+
+SPEC CHECKSUMS:
+  Alamofire: 7682d43245de14874acd142ec137b144aa1dd335
+  Network: e2b07247f3bb6bdf8809ace289eaae62dc85c31a
+
+PODFILE CHECKSUM: 0b860c412c3d15d83857bc47ba8008ffba2d2bed
+
+COCOAPODS: 1.1.0.beta.2
