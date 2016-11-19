@@ -23,22 +23,22 @@ class ViewController: UIViewController {
         
         let request = Network.request("https://httpbin.org/get").query(["foo": "bar"]).build()
         
-        request?.responseJSON(completionHandler: { (_, URLResponse, JSONData, error) -> Void in
-            print("Request3", URLResponse, JSONData, error)
+        request?.responseJSON(completionHandler: { (_, urlResponse, jsonData, error) -> Void in
+            print("Request3", urlResponse as? Any, jsonData, error)
         })
         
         request?.cancel()
         
-        Network.request("https://httpbin.org/post").query(["foo": "bar"]).post(["foo_p": "bar_p"]).build()?.responseJSON(completionHandler: { (_, URLResponse, JSONData, error) -> Void in
-            print("Request4", URLResponse, JSONData, error)
+        Network.request("https://httpbin.org/post").query(["foo": "bar"]).post(["foo_p": "bar_p"]).build()?.responseJSON(completionHandler: { (_, urlResponse, jsonData, error) -> Void in
+            print("Request4", urlResponse, jsonData, error)
         })
         
-        Network.request("https://httpbin.org/post").query(["foo": "bar"]).post(["foo_p": "bar_p"]).encoding(.json(JSONSerialization.WritingOptions())).build()?.responseJSON(completionHandler: { (_, URLResponse, JSONData, error) -> Void in
-            print("Request5", URLResponse, JSONData, error)
+        Network.request("https://httpbin.org/post").query(["foo": "bar"]).post(["foo_p": "bar_p"]).encoding(.json(JSONSerialization.WritingOptions())).build()?.responseJSON(completionHandler: { (_, urlResponse, jsonData, error) -> Void in
+            print("Request5", urlResponse, jsonData, error)
         })
         
-        Network.request("https://httpbin.org/user-agent").headers(["User-Agent": "(Network 0.1.1; Foo bar)"]).build()?.responseJSON(completionHandler: { (_, URLResponse, JSONData, error) -> Void in
-            print(URLResponse, JSONData, error)
+        Network.request("https://httpbin.org/user-agent").headers(["User-Agent": "(Network 0.1.1; Foo bar)"]).build()?.responseJSON(completionHandler: { (_, urlResponse, jsonData, error) -> Void in
+            print(urlResponse, jsonData, error)
         })
     }
     

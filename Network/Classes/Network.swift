@@ -212,12 +212,12 @@ public struct Network {
     public struct ProxyItem: Equatable, Hashable {
         let host: String
         let port: String
-        let HTTPOnly: Bool
+        let httpOnly: Bool
         
-        public init(host: String, port: String, HTTPOnly: Bool = true) {
+        public init(host: String, port: String, httpOnly: Bool = true) {
             self.host = host
             self.port = port
-            self.HTTPOnly = HTTPOnly
+            self.httpOnly = httpOnly
         }
         
         public var hashValue: Int {
@@ -244,12 +244,12 @@ public struct Network {
         }
     }
     
-    public static func request(_ URL: String) -> RequestBuilder {
-        return RequestBuilder(URL: URL)
+    public static func request(_ url: String) -> RequestBuilder {
+        return RequestBuilder(url: url)
     }
     
-    public static func upload(_ URL: String) -> UploadBuilder {
-        return UploadBuilder(URL: URL)
+    public static func upload(_ url: String) -> UploadBuilder {
+        return UploadBuilder(url: url)
     }
     
     public static var client: NetworkClientProtocol.Type?
@@ -259,13 +259,13 @@ public struct Network {
 
 open class HTTPBuilder: NSObject {
     
-    fileprivate init(URL: String) {
-        URLString = URL
+    fileprivate init(url: String) {
+        urlString = url
         super.init()
     }
     
     open func method(_ method: Alamofire.HTTPMethod) -> Self {
-        HTTPMethod = method
+        httpMethod = method
         return self
     }
     
@@ -343,7 +343,7 @@ open class HTTPBuilder: NSObject {
         return nil
     }
     
-    fileprivate var URLString: String
+    fileprivate var urlString: String
     fileprivate var vheaders: [String : String]?
     fileprivate var queryParameters: [String : Any]?
     fileprivate var parameterEncoding: ParameterEncoding = .url
@@ -356,7 +356,7 @@ open class HTTPBuilder: NSObject {
     /// 发送请求的时间（unix时间戳）
     fileprivate var requestTimestamp: TimeInterval = 0
     
-    fileprivate var HTTPMethod: AFMethod = .get
+    fileprivate var httpMethod: AFMethod = .get
     fileprivate var postParameters: [String : Any]?
 }
 
@@ -379,8 +379,8 @@ open class HTTPBuilder: NSObject {
  */
 open class RequestBuilder: HTTPBuilder {
     
-    override init(URL: String) {
-        super.init(URL: URL)
+    override init(url: String) {
+        super.init(url: url)
     }
     
     fileprivate static var manager = AFManager.default
@@ -413,10 +413,10 @@ open class RequestBuilder: HTTPBuilder {
     }
     
     open override func build() -> Request? {
-        if self.URLString.utf16.count == 0 {
+        if self.urlString.isEmpty {
             return nil
         }
-        var absoluteString = append(queryParameters, to: self.URLString)
+        var absoluteString = append(queryParameters, to: self.urlString)
         if vappendCommonParameters {
             // 从CommonParams中删除 getParameters
             if let commonParameters = Network.client?.commonParameters {
@@ -433,7 +433,7 @@ open class RequestBuilder: HTTPBuilder {
         var postParameters = self.postParameters
         Network.client?.willProcessRequestWithURL(&URLString, headers: &headers, parameters: &postParameters)
         
-        guard var mutableURLRequest = mutableRequest(URLString, method: HTTPMethod, headers: headers) else {
+        guard var mutableURLRequest = mutableRequest(URLString, method: httpMethod, headers: headers) else {
             return nil
         }
         requestTimestamp = Date().timeIntervalSince1970
@@ -523,13 +523,13 @@ open class UploadBuilder: HTTPBuilder {
     }
     
     open override func build() -> Request? {
-        if self.URLString.utf16.count == 0 {
+        if self.urlString.isEmpty {
             return nil
         }
         let request = UploadRequest(builder: self)
         request.maximumNumberOfRetryTimes = retryTimes
         
-        var absoluteString = append(queryParameters, to: self.URLString)
+        var absoluteString = append(queryParameters, to: self.urlString)
         if vappendCommonParameters {
             // 从CommonParams中删除 getParameters
             if let commonParameters = Network.client?.commonParameters {
@@ -561,8 +561,8 @@ open class UploadBuilder: HTTPBuilder {
                     multipartFormData.append(data, withName: k)
                 }
             })
-            dataParts.forEach({self.appendData($0, toMultipartFormData: multipartFormData)})
-            fileParts.forEach({self.appendFile($0, toMultipartFormData: multipartFormData)})
+            dataParts.forEach({self.append($0, to: multipartFormData)})
+            fileParts.forEach({self.append($0, to: multipartFormData)})
         }, usingThreshold:UInt64(2_000_000), with: urlRequest) { (encodingResult) in
             switch encodingResult {
             case .success(let upload, _, _):
@@ -578,7 +578,7 @@ open class UploadBuilder: HTTPBuilder {
         return request
     }
     
-    fileprivate func appendData(_ data: Data, toMultipartFormData multipartFormData: Alamofire.MultipartFormData) {
+    fileprivate func append(_ data: Data, to multipartFormData: Alamofire.MultipartFormData) {
         if let mimeType = data.mimeType {
             if let fileName = data.fileName {
                 multipartFormData.append(data.data, withName: data.name, fileName: fileName, mimeType: mimeType)
@@ -590,7 +590,7 @@ open class UploadBuilder: HTTPBuilder {
         }
     }
     
-    fileprivate func appendFile(_ file: File, toMultipartFormData multipartFormData: Alamofire.MultipartFormData) {
+    fileprivate func append(_ file: File, to multipartFormData: Alamofire.MultipartFormData) {
         if let mimeType = file.mimeType {
             if let fileName = file.fileName {
                 multipartFormData.append(file.fileURL, withName: file.name, fileName: fileName, mimeType: mimeType)
