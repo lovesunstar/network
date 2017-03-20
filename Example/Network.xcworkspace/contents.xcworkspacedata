@@ -2,6 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:Tests.playground">
+   </FileRef>
+   <FileRef
       location = "group:Network.xcodeproj">
    </FileRef>
    <FileRef
