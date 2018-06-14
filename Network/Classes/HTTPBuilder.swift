@@ -198,11 +198,10 @@ public extension Network {
                 headers += defaultHeaders
             }
             headers += vheaders
-            var URLString = absoluteString as String
+            var newURLString = absoluteString as String
             var postParameters = self.postParameters
-            Network.client?.willProcessRequestWithURL(&URLString, headers: &headers, parameters: &postParameters)
-            
-            guard var mutableURLRequest = mutableRequest(URLString, method: httpMethod, headers: headers) else {
+            Network.client?.willProcessRequest(&newURLString, headers: &headers, parameters: &postParameters)
+            guard var mutableURLRequest = mutableRequest(newURLString, method: httpMethod, headers: headers) else {
                 return nil
             }
             requestTimestamp = Date().timeIntervalSince1970
@@ -277,6 +276,7 @@ public extension Network {
             timeoutInterval = 180
         }
         
+        @discardableResult
         open func append(data: Foundation.Data, name: String, fileName: String? = nil, mimeType: String? = nil) -> Self {
             let part = Data(name: name, data: data)
             part.fileName = fileName
@@ -294,6 +294,7 @@ public extension Network {
             }
         }
         
+        @discardableResult
         open func append(file fileURL: URL, name: String, fileName: String, mimeType: String? = nil) -> Self {
             let part = File(name: name, fileURL: fileURL)
             part.fileName = fileName
@@ -330,7 +331,7 @@ public extension Network {
             }
             headers += vheaders
             var postParameters = self.postParameters
-            Network.client?.willProcessRequestWithURL(&absoluteString, headers: &headers, parameters: &postParameters)
+            Network.client?.willProcessRequest(&absoluteString, headers: &headers, parameters: &postParameters)
             
             let dataParts = self.dataParts
             let fileParts = self.fileParts

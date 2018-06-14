@@ -63,15 +63,15 @@ public extension Network {
                 if let urlRequest = request {
                     //
                     let timestamp = self.httpBuilder.requestTimestamp
-                    let duration = NSDate().timeIntervalSince1970 - self.httpBuilder.requestTimestamp
-                    Network.client?.willProcessResponseWithRequest(urlRequest, timestamp: timestamp, duration: duration, responseData: result.value, error: result.error, URLResponse: response, timeline: results.timeline)
+                    let duration = Date().timeIntervalSince1970 - timestamp
+                    Network.client?.willProcessResponse(urlRequest, totalDuration: duration, responseData: result.value, error: result.error, urlResponse: response, timeline: results.timeline)
                 }
                 var cancelled = false
                 if let error = result.error {
                     if self.canRetryWithError(error) {
                         if let request = self.httpBuilder.build() {
                             request.retriedTimes = (self.retriedTimes + 1)
-                            self.httpBuilder.requestTimestamp = NSDate().timeIntervalSince1970
+                            self.httpBuilder.requestTimestamp = Date().timeIntervalSince1970
                             let _ = request.responseJSON(options: options, completionHandler: completionHandler)
                             return
                         }
@@ -121,6 +121,8 @@ public extension Network {
         
         internal let builder: UploadBuilder
         
+        private var isCancelled = false
+        
         internal override var httpBuilder: HTTPBuilder {
             return builder
         }
@@ -148,10 +150,11 @@ public extension Network {
         
         open override func cancel() {
             request?.cancel()
+            isCancelled = true
         }
         
         internal func startUploading() {
-            if let request = request {
+            if let request = request, !isCancelled {
                 responseJSONWithRequest(request, options: self.options, completionHandler: self.completionHandler)
             }
         }

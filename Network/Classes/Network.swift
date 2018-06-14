@@ -24,9 +24,9 @@ public protocol NetworkClientProtocol: NSObjectProtocol {
      */
     static func compressDataUsingGZip(_ data: inout Data) -> Bool
     
-    static func willProcessRequestWithURL(_ URLString: inout String, headers: inout [String: String], parameters: inout [String: Any]?)
+    static func willProcessRequest(_ URLString: inout String, headers: inout [String: String], parameters: inout [String: Any]?)
     
-    static func willProcessResponseWithRequest(_ request: URLRequest, timestamp: TimeInterval, duration: TimeInterval, responseData: Any?, error: Error?, URLResponse: HTTPURLResponse?, timeline: Alamofire.Timeline)
+    static func willProcessResponse(_ request: URLRequest, totalDuration: TimeInterval, responseData: Any?, error: Error?, urlResponse: HTTPURLResponse?, timeline: Alamofire.Timeline)
 }
 
 public class Network {
