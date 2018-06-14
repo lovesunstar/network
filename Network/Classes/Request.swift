@@ -64,7 +64,7 @@ public extension Network {
                     //
                     let timestamp = self.httpBuilder.requestTimestamp
                     let duration = NSDate().timeIntervalSince1970 - self.httpBuilder.requestTimestamp
-                    Network.client?.willProcessResponseWithRequest(urlRequest, timestamp: timestamp, duration: duration, responseData: result.value, error: result.error, URLResponse: response)
+                    Network.client?.willProcessResponseWithRequest(urlRequest, timestamp: timestamp, duration: duration, responseData: result.value, error: result.error, URLResponse: response, timeline: results.timeline)
                 }
                 var cancelled = false
                 if let error = result.error {

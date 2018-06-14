@@ -40,6 +40,19 @@ class ViewController: UIViewController {
         Network.request("https://httpbin.org/user-agent").headers(["User-Agent": "(Network 0.1.1; Foo bar)"]).build()?.responseJSON(completionHandler: { (_, urlResponse, jsonData, error) -> Void in
             print(urlResponse ?? "", jsonData ?? "", error ?? "")
         })
+        let data: Data = {
+            let longText: NSMutableString = ""
+            for _ in 0..<10000 {
+                longText.append("This is a long text.")
+            }
+            return (longText as String).data(using: .utf8)!
+        }()
+        Network.upload("https://httpbin.org/post").append(data: data, name: "test.txt", fileName: "test.txt", mimeType: "text/plain")
+            .uploadProgress { (progress) in
+            print("=====", progress)
+            }.build()?.responseJSON(completionHandler: { (_, _, results, _) in
+                print("=====",results ?? "FFF")
+            })
     }
     
     override func didReceiveMemoryWarning() {

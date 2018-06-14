@@ -83,6 +83,13 @@ public extension Network {
             return self
         }
         
+        @discardableResult
+        open func downloadProgress(on queue: DispatchQueue = DispatchQueue.main, callback:((Progress)->Void)?) -> Self {
+            downloadProgressQueue = queue
+            downloadProgressCallback = callback
+            return self
+        }
+      
         fileprivate func append(_ parameters: [String : Any]?, to absoluteString: String) -> String {
             guard let parameters = parameters , !parameters.isEmpty else {
                 return absoluteString
@@ -118,6 +125,10 @@ public extension Network {
         internal var timeoutInterval: TimeInterval = 30
         internal var vcachePolicy = NSURLRequest.CachePolicy.useProtocolCachePolicy
         internal var vpriority = Network.Priority.default
+        
+        internal var downloadProgressQueue: DispatchQueue?
+        internal var downloadProgressCallback: ((Progress)->Void)?
+        
         internal var vgzipEnabled = true
         /// 发送请求的时间（unix时间戳）
         internal var requestTimestamp: TimeInterval = 0
@@ -213,6 +224,9 @@ public extension Network {
             }
             let afRequest = manager.request(encodedURLRequest)
             afRequest.task?.priority = vpriority.rawValue
+            if let dc = downloadProgressCallback {
+                afRequest.downloadProgress(queue: downloadProgressQueue ?? DispatchQueue.main, closure: dc)
+            }
             let resultRequest = Network.NormalRequest(builder: self, request: afRequest)
             resultRequest.maximumNumberOfRetryTimes = retryTimes
             return resultRequest
@@ -245,6 +259,9 @@ public extension Network {
             }
         }
         
+        internal var uploadProgressQueue: DispatchQueue?
+        internal var uploadProgressCallback: ((Progress)->Void)?
+        
         private class Data: Part {
             
             var data: Foundation.Data
@@ -253,6 +270,11 @@ public extension Network {
                 self.data = data
                 super.init(name: name)
             }
+        }
+        
+        override init(url: String, manager: AFManager) {
+            super.init(url: url, manager: manager)
+            timeoutInterval = 180
         }
         
         open func append(data: Foundation.Data, name: String, fileName: String? = nil, mimeType: String? = nil) -> Self {
@@ -277,6 +299,13 @@ public extension Network {
             part.fileName = fileName
             part.mimeType = mimeType
             fileParts.append(part)
+            return self
+        }
+        
+        @discardableResult
+        open func uploadProgress(on queue: DispatchQueue = DispatchQueue.main, callback:((Progress)->Void)?) -> Self {
+            uploadProgressQueue = queue
+            uploadProgressCallback = callback
             return self
         }
         
@@ -312,7 +341,7 @@ public extension Network {
             for (headerField, headerValue) in headers {
                 urlRequest.setValue(headerValue, forHTTPHeaderField: headerField)
             }
-            
+            urlRequest.httpMethod = "POST"
             Alamofire.upload(multipartFormData: { (multipartFormData) in
                 postParts?.forEach({ k, v in
                     if let data = ((v as? String) ?? "\(v)").data(using: .utf8) {
@@ -326,6 +355,12 @@ public extension Network {
                 case .success(let upload, _, _):
                     upload.task?.priority = self.vpriority.rawValue
                     self.requestTimestamp = NSDate().timeIntervalSince1970
+                    if let pq = self.uploadProgressCallback {
+                        upload.uploadProgress(queue: self.uploadProgressQueue ?? DispatchQueue.main, closure: pq)
+                    }
+                    if let dc = self.downloadProgressCallback {
+                        upload.downloadProgress(queue: self.downloadProgressQueue ?? DispatchQueue.main, closure: dc)
+                    }
                     request.request = upload
                     request.startUploading()
                 case .failure(let encodingError):
