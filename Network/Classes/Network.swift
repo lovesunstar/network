@@ -17,6 +17,9 @@ typealias AFRequest = Alamofire.Request
 public protocol NetworkClientProtocol: NSObjectProtocol {
     
     static var commonParameters: [String: Any]? { get }
+    
+    static var commonParametersSorter: ((String, String)->Bool)? { get }
+    
     static var requestHeaders: [String: String]? { get }
     
     /**
@@ -29,6 +32,12 @@ public protocol NetworkClientProtocol: NSObjectProtocol {
     static func willProcessResponse(_ request: URLRequest, totalDuration: TimeInterval, responseData: Any?, error: Error?, urlResponse: HTTPURLResponse?, timeline: Alamofire.Timeline)
 }
 
+extension NetworkClientProtocol {
+    static var commonParametersSorter: ((String, String)->Bool)? {
+        return nil
+    }
+}
+
 public class Network {
     
     public enum Priority: Float {
@@ -39,11 +48,15 @@ public class Network {
     }
     
     public static func request(_ url: String) -> RequestBuilder {
-        return shared.request(url)
+        let builder = shared.request(url)
+        builder.querySorter = self.client?.commonParametersSorter
+        return builder
     }
     
     public static func upload(_ url: String) -> UploadBuilder {
-        return shared.upload(url)
+        let builder = shared.upload(url)
+        builder.querySorter = self.client?.commonParametersSorter
+        return builder
     }
     
     public static let shared = Network(configuration: AFManager.default.session.configuration)

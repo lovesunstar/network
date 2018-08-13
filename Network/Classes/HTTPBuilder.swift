@@ -14,6 +14,8 @@ public extension Network {
         
         internal let manager: AFManager
         
+        internal var querySorter: ((String, String)->Bool)?
+        
         internal init(url: String, manager: AFManager) {
             urlString = url
             self.manager = manager
@@ -96,7 +98,10 @@ public extension Network {
             }
             var results = absoluteString
             var components: [(String, String)] = []
-            for key in Array(parameters.keys).sorted(by: <) {
+            let sorter: (String, String) -> Bool = querySorter ?? { (lhs: String, rhs: String) -> Bool in
+                return lhs < rhs
+            }
+            for key in Array(parameters.keys).sorted(by: sorter) {
                 let value = parameters[key]!
                 components += Alamofire.URLEncoding.queryString.queryComponents(fromKey: key, value: value)
             }
