@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'Network'
-  s.version          = '3.0.6'
+  s.version          = '3.0.7'
   s.summary          = 'Using network request easily'
 
   s.description      = <<-DESC
