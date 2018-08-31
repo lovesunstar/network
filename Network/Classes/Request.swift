@@ -62,9 +62,15 @@ public extension Network {
                 let request = results.request, response = results.response, result = results.result
                 if let urlRequest = request {
                     //
+                    let metrics: Any?
+                    if #available(iOS 10, *) {
+                        metrics = results.metrics
+                    } else {
+                        metrics = nil
+                    }
                     let timestamp = self.httpBuilder.requestTimestamp
                     let duration = Date().timeIntervalSince1970 - timestamp
-                    Network.client?.willProcessResponse(urlRequest, totalDuration: duration, responseData: result.value, error: result.error, urlResponse: response, timeline: results.timeline)
+                    Network.client?.willProcessResponse(urlRequest, totalDuration: duration, responseData: result.value, error: result.error, urlResponse: response, timeline: results.timeline, metrics: metrics)
                 }
                 var cancelled = false
                 if let error = result.error {

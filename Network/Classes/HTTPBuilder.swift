@@ -134,7 +134,7 @@ public extension Network {
         internal var downloadProgressQueue: DispatchQueue?
         internal var downloadProgressCallback: ((Progress)->Void)?
         
-        internal var vgzipEnabled = false
+        internal var vgzipEnabled = Network.client?.gzipEnabled ?? false
         /// 发送请求的时间（unix时间戳）
         internal var requestTimestamp: TimeInterval = 0
         

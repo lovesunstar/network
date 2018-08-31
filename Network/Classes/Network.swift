@@ -22,6 +22,8 @@ public protocol NetworkClientProtocol: NSObjectProtocol {
     
     static var requestHeaders: [String: String]? { get }
     
+    static var gzipEnabled: Bool { get }
+    
     /**
      - returns: compressed
      */
@@ -29,7 +31,7 @@ public protocol NetworkClientProtocol: NSObjectProtocol {
     
     static func willProcessRequest(_ URLString: inout String, headers: inout [String: String], parameters: inout [String: Any]?)
     
-    static func willProcessResponse(_ request: URLRequest, totalDuration: TimeInterval, responseData: Any?, error: Error?, urlResponse: HTTPURLResponse?, timeline: Alamofire.Timeline)
+    static func willProcessResponse(_ request: URLRequest, totalDuration: TimeInterval, responseData: Any?, error: Error?, urlResponse: HTTPURLResponse?, timeline: Alamofire.Timeline, metrics: Any?)
 }
 
 extension NetworkClientProtocol {
