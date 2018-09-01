@@ -127,14 +127,14 @@ public extension Network {
         internal var parameterEncoding: ParameterEncoding = .url
         internal var vappendCommonParameters = true
         internal var retryTimes: UInt16 = 0
-        internal var timeoutInterval: TimeInterval = 30
+        internal var timeoutInterval: TimeInterval = Network.client?.timeoutInterval ?? 15
         internal var vcachePolicy = NSURLRequest.CachePolicy.useProtocolCachePolicy
         internal var vpriority = Network.Priority.default
         
         internal var downloadProgressQueue: DispatchQueue?
         internal var downloadProgressCallback: ((Progress)->Void)?
         
-        internal var vgzipEnabled = Network.client?.gzipEnabled ?? false
+        internal var vgzipEnabled = Network.client?.isGZipEnabled ?? false
         /// 发送请求的时间（unix时间戳）
         internal var requestTimestamp: TimeInterval = 0
         

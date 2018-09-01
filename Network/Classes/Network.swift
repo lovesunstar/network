@@ -22,7 +22,8 @@ public protocol NetworkClientProtocol: NSObjectProtocol {
     
     static var requestHeaders: [String: String]? { get }
     
-    static var gzipEnabled: Bool { get }
+    static var isGZipEnabled: Bool { get }
+    static var timeoutInterval: TimeInterval { get }
     
     /**
      - returns: compressed
@@ -35,8 +36,37 @@ public protocol NetworkClientProtocol: NSObjectProtocol {
 }
 
 extension NetworkClientProtocol {
+    
+    static var commonParameters: [String: Any]? {
+        return nil
+    }
+    
+    static func compressDataUsingGZip(_ data: inout Data) -> Bool {
+        return false
+    }
+    
+    static func willProcessRequest(_ URLString: inout String, headers: inout [String: String], parameters: inout [String: Any]?) {
+        
+    }
+    
+    static func willProcessResponse(_ request: URLRequest, totalDuration: TimeInterval, responseData: Any?, error: Error?, urlResponse: HTTPURLResponse?, timeline: Alamofire.Timeline, metrics: Any?) {
+        
+    }
+    
     static var commonParametersSorter: ((String, String)->Bool)? {
         return nil
+    }
+    
+    static var requestHeaders: [String: String]? {
+        return nil
+    }
+ 
+    static var isGZipEnabled: Bool {
+        return false
+    }
+    
+    static var timeoutInterval: TimeInterval {
+        return 15
     }
 }
 
