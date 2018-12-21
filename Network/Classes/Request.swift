@@ -38,6 +38,10 @@ public extension Network {
         
         public internal(set) weak var network: Network?
         
+        public var timeoutInterval: TimeInterval {
+            return httpBuilder.timeoutInterval * TimeInterval(httpBuilder.retryTimes + 1)
+        }
+        
         fileprivate func canRetryWithError(_ error: Error) -> Bool {
             return Request.isErrorEnabledToRetry(error) && retriedTimes < maximumNumberOfRetryTimes
         }
@@ -112,6 +116,14 @@ public extension Network {
             super.init()
         }
         
+        public override var timeoutInterval: TimeInterval {
+            if let requestTimeoutInterval = request.request?.timeoutInterval {
+                return requestTimeoutInterval
+            }
+            return httpBuilder.timeoutInterval
+        }
+        
+        
         override open func responseJSON(
             queue: DispatchQueue? = nil,
             options: JSONSerialization.ReadingOptions,
@@ -144,6 +156,13 @@ public extension Network {
         internal init(builder: UploadBuilder) {
             self.builder = builder
             super.init()
+        }
+        
+        public override var timeoutInterval: TimeInterval {
+            if let requestTimeoutInterval = request?.request?.timeoutInterval {
+                return requestTimeoutInterval
+            }
+            return httpBuilder.timeoutInterval
         }
         
         open override func responseJSON(
