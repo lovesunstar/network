@@ -167,11 +167,11 @@ public class Network {
     }
     
     public func request(_ url: String) -> RequestBuilder {
-        return Network.RequestBuilder(url: url, manager: manager)
+        return Network.RequestBuilder(url: url, manager: manager, network: self)
     }
     
     public func upload(_ url: String) -> UploadBuilder {
-        return Network.UploadBuilder(url: url, manager: manager)
+        return Network.UploadBuilder(url: url, manager: manager, network: self)
     }
     
 }
