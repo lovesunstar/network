@@ -34,6 +34,8 @@ public extension Network {
             
         }
         
+        public var didCancelCallback: ((Request) ->Void)?
+        
         fileprivate func canRetryWithError(_ error: Error) -> Bool {
             return Request.isErrorEnabledToRetry(error) && retriedTimes < maximumNumberOfRetryTimes
         }
@@ -50,7 +52,7 @@ public extension Network {
         }
         
         open func cancel() {
-            
+            didCancelCallback?(self)
         }
         
         fileprivate func responseJSONWithRequest(
@@ -118,6 +120,7 @@ public extension Network {
         
         open override func cancel() {
             request.cancel()
+            super.cancel()
         }
     }
 
@@ -157,6 +160,7 @@ public extension Network {
         open override func cancel() {
             request?.cancel()
             isCancelled = true
+            super.cancel()
         }
         
         internal func startUploading() {

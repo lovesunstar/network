@@ -12,7 +12,7 @@ public extension Network {
     
     public class HTTPBuilder: NSObject {
         
-        internal let manager: AFManager
+        internal weak var manager: AFManager?
         
         internal var querySorter: ((String, String)->Bool)?
         
@@ -226,7 +226,7 @@ public extension Network {
                     }
                 }
             }
-            let afRequest = manager.request(encodedURLRequest)
+            let afRequest = (manager ?? AFManager.default).request(encodedURLRequest)
             afRequest.task?.priority = vpriority.rawValue
             if let dc = downloadProgressCallback {
                 afRequest.downloadProgress(queue: downloadProgressQueue ?? DispatchQueue.main, closure: dc)
