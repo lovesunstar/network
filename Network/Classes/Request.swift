@@ -36,6 +36,8 @@ public extension Network {
         
         public var didCancelCallback: ((Request) ->Void)?
         
+        public internal(set) weak var network: Network?
+        
         fileprivate func canRetryWithError(_ error: Error) -> Bool {
             return Request.isErrorEnabledToRetry(error) && retriedTimes < maximumNumberOfRetryTimes
         }

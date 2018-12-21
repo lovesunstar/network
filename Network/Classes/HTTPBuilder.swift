@@ -13,12 +13,14 @@ public extension Network {
     public class HTTPBuilder: NSObject {
         
         internal weak var manager: AFManager?
+        internal weak var network: Network?
         
         internal var querySorter: ((String, String)->Bool)?
         
-        internal init(url: String, manager: AFManager) {
+        internal init(url: String, manager: AFManager, network: Network) {
             urlString = url
             self.manager = manager
+            self.network = network
             super.init()
         }
         
@@ -233,6 +235,7 @@ public extension Network {
             }
             let resultRequest = Network.NormalRequest(builder: self, request: afRequest)
             resultRequest.maximumNumberOfRetryTimes = retryTimes
+            resultRequest.network = self.network
             return resultRequest
         }
         
@@ -276,8 +279,8 @@ public extension Network {
             }
         }
         
-        override init(url: String, manager: AFManager) {
-            super.init(url: url, manager: manager)
+        override init(url: String, manager: AFManager, network: Network) {
+            super.init(url: url, manager: manager, network: network)
             timeoutInterval = 180
         }
         
@@ -374,6 +377,7 @@ public extension Network {
                 }
             }
             request.maximumNumberOfRetryTimes = self.retryTimes
+            request.network = self.network
             return request
         }
         

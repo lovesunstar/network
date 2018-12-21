@@ -162,6 +162,10 @@ public class Network {
         self.configuration = configuration
     }
     
+    public func reset() {
+        manager = AFManager(configuration: configuration)
+    }
+    
     public func request(_ url: String) -> RequestBuilder {
         return Network.RequestBuilder(url: url, manager: manager)
     }
