@@ -81,13 +81,11 @@ public class Network {
     
     public static func request(_ url: String) -> RequestBuilder {
         let builder = shared.request(url)
-        builder.querySorter = self.client?.commonParametersSorter
         return builder
     }
     
     public static func upload(_ url: String) -> UploadBuilder {
         let builder = shared.upload(url)
-        builder.querySorter = self.client?.commonParametersSorter
         return builder
     }
     
@@ -167,11 +165,15 @@ public class Network {
     }
     
     public func request(_ url: String) -> RequestBuilder {
-        return Network.RequestBuilder(url: url, manager: manager, network: self)
+        let builder = Network.RequestBuilder(url: url, manager: manager, network: self)
+        builder.querySorter = self.client?.commonParametersSorter
+        return builder
     }
     
     public func upload(_ url: String) -> UploadBuilder {
-        return Network.UploadBuilder(url: url, manager: manager, network: self)
+        let builder = Network.UploadBuilder(url: url, manager: manager, network: self)
+        builder.querySorter = self.client?.commonParametersSorter
+        return builder
     }
     
 }
