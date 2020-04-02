@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'Network'
-  s.version          = '3.1.3'
+  s.version          = '3.1.5'
   s.summary          = 'Using network request easily'
 
   s.description      = <<-DESC
@@ -21,7 +21,7 @@ Pod::Spec.new do |s|
   s.source           = { :git => 'https://github.com/lovesunstar/Network.git', :tag => s.version.to_s }
   s.social_media_url = 'https://twitter.com/_lovesunstar'
 
-  s.ios.deployment_target = '9.0'
+  s.ios.deployment_target = '10.0'
 
   s.source_files = 'Network/Classes/**/*'
 

@@ -10,7 +10,7 @@ import Alamofire
 
 public extension Network {
     
-    public class Request {
+    class Request {
         
         fileprivate static func isErrorEnabledToRetry(_ error: Error) -> Bool {
             guard let urlError = error as? URLError else {
@@ -66,22 +66,18 @@ public extension Network {
             queue: DispatchQueue? = nil,
             options: JSONSerialization.ReadingOptions,
             completionHandler: ((URLRequest?, HTTPURLResponse?, Any?, NSError?) -> Void)?) {
-            (request as? Alamofire.DataRequest)?.responseJSON(queue: queue, options: options) { (results) in
-                let request = results.request, response = results.response, result = results.result
+            (request as? Alamofire.DataRequest)?.responseJSON(queue: queue ?? DispatchQueue.main, options: options) { (results) in
+                let request = results.request, response = results.response
                 if let urlRequest = request {
                     //
-                    let metrics: Any?
-                    if #available(iOS 10, *) {
-                        metrics = results.metrics
-                    } else {
-                        metrics = nil
-                    }
                     let timestamp = self.httpBuilder.requestTimestamp
                     let duration = Date().timeIntervalSince1970 - timestamp
-                    Network.client?.willProcessResponse(urlRequest, totalDuration: duration, responseData: result.value, error: result.error, urlResponse: response, timeline: results.timeline, metrics: metrics)
+                    
+                   
+                    Network.client?.willProcessResponse(urlRequest, totalDuration: duration, responseData: results.value, error: results.error, urlResponse: response, metrics: results.metrics)
                 }
                 var cancelled = false
-                if let error = result.error {
+                if let error = results.error?.underlyingError {
                     if self.canRetryWithError(error) {
                         if let request = self.httpBuilder.build() {
                             request.retriedTimes = (self.retriedTimes + 1)
@@ -95,13 +91,13 @@ public extension Network {
                     }
                 }
                 if !cancelled {
-                    completionHandler?(request, response, result.value, result.error as NSError?)
+                    completionHandler?(request, response, results.value, results.error as NSError?)
                 }
             }
         }
     }
 
-    public class NormalRequest: Network.Request {
+    class NormalRequest: Network.Request {
         
         internal let request: Alamofire.Request
         internal let builder: RequestBuilder
@@ -138,7 +134,7 @@ public extension Network {
         }
     }
 
-    public class UploadRequest: Network.Request {
+    class UploadRequest: Network.Request {
         
         internal var request: Alamofire.Request?
         

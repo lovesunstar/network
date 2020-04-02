@@ -10,7 +10,7 @@ import Foundation
 import CoreFoundation
 import Alamofire
 
-typealias AFManager = Alamofire.SessionManager
+typealias AFManager = Alamofire.Session
 typealias AFMethod = Alamofire.HTTPMethod
 typealias AFRequest = Alamofire.Request
 
@@ -32,7 +32,7 @@ public protocol NetworkClientProtocol: NSObjectProtocol {
     
     static func willProcessRequest(_ URLString: inout String, headers: inout [String: String], parameters: inout [String: Any]?)
     
-    static func willProcessResponse(_ request: URLRequest, totalDuration: TimeInterval, responseData: Any?, error: Error?, urlResponse: HTTPURLResponse?, timeline: Alamofire.Timeline, metrics: Any?)
+    static func willProcessResponse(_ request: URLRequest, totalDuration: TimeInterval, responseData: Any?, error: Error?, urlResponse: HTTPURLResponse?, metrics: URLSessionTaskMetrics?)
 }
 
 extension NetworkClientProtocol {
@@ -49,7 +49,7 @@ extension NetworkClientProtocol {
         
     }
     
-    static func willProcessResponse(_ request: URLRequest, totalDuration: TimeInterval, responseData: Any?, error: Error?, urlResponse: HTTPURLResponse?, timeline: Alamofire.Timeline, metrics: Any?) {
+    static func willProcessResponse(_ request: URLRequest, totalDuration: TimeInterval, responseData: Any?, error: Error?, urlResponse: HTTPURLResponse?, metrics: URLSessionTaskMetrics?) {
         
     }
     
@@ -191,8 +191,9 @@ extension Network {
             self.httpOnly = httpOnly
         }
         
-        public var hashValue: Int {
-            return host.hashValue ^ port.hashValue
+        public func hash(into hasher: inout Hasher) {
+            hasher.combine(host.hashValue)
+            hasher.combine(port.hashValue)
         }
         
         public static func == (lhs: Network.ProxyItem, rhs: Network.ProxyItem) -> Bool {

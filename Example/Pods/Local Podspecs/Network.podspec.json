@@ -1,6 +1,6 @@
 {
   "name": "Network",
-  "version": "3.0.1",
+  "version": "3.1.3",
   "summary": "Using network request easily",
   "description": "Using builder to simply the way to create new requests.",
   "homepage": "https://github.com/lovesunstar/Network",
@@ -13,7 +13,7 @@
   },
   "source": {
     "git": "https://github.com/lovesunstar/Network.git",
-    "tag": "3.0.1"
+    "tag": "3.1.3"
   },
   "social_media_url": "https://twitter.com/_lovesunstar",
   "platforms": {

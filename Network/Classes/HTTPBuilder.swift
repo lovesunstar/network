@@ -10,18 +10,22 @@ import Alamofire
 
 public extension Network {
     
-    public class HTTPBuilder: NSObject {
+    class HTTPBuilder: NSObject {
         
         internal weak var manager: AFManager?
         internal weak var network: Network?
         
         internal var querySorter: ((String, String)->Bool)?
         
-        internal init(url: String, manager: AFManager, network: Network) {
+        required init(url: String, manager: AFManager, network: Network) {
             urlString = url
             self.manager = manager
             self.network = network
             super.init()
+        }
+        
+        public override init() {
+            fatalError()
         }
         
         @discardableResult
@@ -161,7 +165,7 @@ public extension Network {
      .append(commonParameters)?<br />
      .pack() unwrap?.pon_response { _, _, results, error in logic }
      */
-    public class RequestBuilder: HTTPBuilder {
+    class RequestBuilder: HTTPBuilder {
 
         @discardableResult
         open func encoding(_ encoding: ParameterEncoding) -> Self {
@@ -254,7 +258,7 @@ public extension Network {
         }
     }
     
-    public class UploadBuilder: HTTPBuilder {
+    class UploadBuilder: HTTPBuilder {
         
         private class Part {
             var name: String
@@ -279,7 +283,7 @@ public extension Network {
             }
         }
         
-        override init(url: String, manager: AFManager, network: Network) {
+        required init(url: String, manager: AFManager, network: Network) {
             super.init(url: url, manager: manager, network: network)
             timeoutInterval = 180
         }
@@ -351,7 +355,8 @@ public extension Network {
                 urlRequest.setValue(headerValue, forHTTPHeaderField: headerField)
             }
             urlRequest.httpMethod = "POST"
-            Alamofire.upload(multipartFormData: { (multipartFormData) in
+            
+            let uploadRequest = (manager ?? AF).upload(multipartFormData: { (multipartFormData) in
                 postParts?.forEach({ k, v in
                     if let data = ((v as? String) ?? "\(v)").data(using: .utf8) {
                         multipartFormData.append(data, withName: k)
@@ -359,25 +364,19 @@ public extension Network {
                 })
                 dataParts.forEach({self.append($0, to: multipartFormData)})
                 fileParts.forEach({self.append($0, to: multipartFormData)})
-            }, usingThreshold:UInt64(2_000_000), with: urlRequest) { (encodingResult) in
-                switch encodingResult {
-                case .success(let upload, _, _):
-                    upload.task?.priority = self.vpriority.rawValue
-                    self.requestTimestamp = NSDate().timeIntervalSince1970
-                    if let pq = self.uploadProgressCallback {
-                        upload.uploadProgress(queue: self.uploadProgressQueue ?? DispatchQueue.main, closure: pq)
-                    }
-                    if let dc = self.downloadProgressCallback {
-                        upload.downloadProgress(queue: self.downloadProgressQueue ?? DispatchQueue.main, closure: dc)
-                    }
-                    request.request = upload
-                    request.startUploading()
-                case .failure(let encodingError):
-                    request.notifyError(encodingError)
-                }
+                }, with: urlRequest, usingThreshold: 2_000_000)
+            self.requestTimestamp = NSDate().timeIntervalSince1970
+            if let pq = uploadProgressCallback {
+                uploadRequest.uploadProgress(queue: uploadProgressQueue ?? DispatchQueue.main, closure: pq)
             }
+            if let dc = downloadProgressCallback {
+                uploadRequest.downloadProgress(queue: downloadProgressQueue ?? DispatchQueue.main, closure: dc)
+            }
+            uploadRequest.task?.priority = vpriority.rawValue
+            request.request = uploadRequest
             request.maximumNumberOfRetryTimes = self.retryTimes
             request.network = self.network
+            request.startUploading()
             return request
         }
         
