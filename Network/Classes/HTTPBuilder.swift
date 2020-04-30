@@ -56,6 +56,12 @@ public extension Network {
         }
         
         @discardableResult
+        open func content(_ parameters: [String : Any]?) -> Self {
+            postParameters = parameters
+            return self
+        }
+        
+        @discardableResult
         open func headers(_ headers: [String : String]?) -> Self {
             vheaders = headers
             return self
@@ -88,6 +94,12 @@ public extension Network {
         @discardableResult
         open func priority(_ priority: Network.Priority) -> Self {
             vpriority = priority
+            return self
+        }
+        
+        @discardableResult
+        open func encoding(_ encoding: ParameterEncoding) -> Self {
+            parameterEncoding = encoding
             return self
         }
         
@@ -166,12 +178,6 @@ public extension Network {
      .pack() unwrap?.pon_response { _, _, results, error in logic }
      */
     class RequestBuilder: HTTPBuilder {
-
-        @discardableResult
-        open func encoding(_ encoding: ParameterEncoding) -> Self {
-            parameterEncoding = encoding
-            return self
-        }
         
         /// NOTE: never use this way on main thread
         open func syncResponseJSON(options: JSONSerialization.ReadingOptions = .allowFragments) -> (URLResponse?, Any?, NSError?) {
