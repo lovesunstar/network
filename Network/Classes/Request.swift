@@ -68,16 +68,17 @@ public extension Network {
             completionHandler: ((URLRequest?, HTTPURLResponse?, Any?, NSError?) -> Void)?) {
             (request as? Alamofire.DataRequest)?.responseJSON(queue: queue ?? DispatchQueue.main, options: options) { (results) in
                 let request = results.request, response = results.response
+                let underlyingError = results.error?.underlyingError
                 if let urlRequest = request {
                     //
                     let timestamp = self.httpBuilder.requestTimestamp
                     let duration = Date().timeIntervalSince1970 - timestamp
                     
                    
-                    Network.client?.willProcessResponse(urlRequest, totalDuration: duration, responseData: results.value, error: results.error, urlResponse: response, metrics: results.metrics)
+                    Network.client?.willProcessResponse(urlRequest, totalDuration: duration, responseData: results.value, error: underlyingError, urlResponse: response, metrics: results.metrics)
                 }
                 var cancelled = false
-                if let error = results.error?.underlyingError {
+                if let error = underlyingError {
                     if self.canRetryWithError(error) {
                         if let request = self.httpBuilder.build() {
                             request.retriedTimes = (self.retriedTimes + 1)
@@ -91,7 +92,7 @@ public extension Network {
                     }
                 }
                 if !cancelled {
-                    completionHandler?(request, response, results.value, results.error as NSError?)
+                    completionHandler?(request, response, results.value, underlyingError as NSError?)
                 }
             }
         }
