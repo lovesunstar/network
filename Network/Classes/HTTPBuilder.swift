@@ -361,6 +361,7 @@ public extension Network {
                 urlRequest.setValue(headerValue, forHTTPHeaderField: headerField)
             }
             urlRequest.httpMethod = "POST"
+            urlRequest.timeoutInterval = timeoutInterval
             
             let uploadRequest = (manager ?? AF).upload(multipartFormData: { (multipartFormData) in
                 postParts?.forEach({ k, v in
