@@ -28,7 +28,13 @@ public protocol NetworkClientProtocol: NSObjectProtocol {
     /**
      - returns: compressed
      */
-    static func compressDataUsingGZip(_ data: inout Data) -> Bool
+    static func compressBodyUsingGZip(_ data: inout Data) -> Bool
+    
+    
+    /**
+     - returns: processed
+     */
+    static func preprocessBody(_ data: inout Data, mark: [String: Any]?) -> Bool
     
     static func willProcessRequest(_ URLString: inout String, headers: inout [String: String], parameters: inout [String: Any]?)
     
@@ -41,7 +47,11 @@ extension NetworkClientProtocol {
         return nil
     }
     
-    static func compressDataUsingGZip(_ data: inout Data) -> Bool {
+    static func compressBodyUsingGZip(_ data: inout Data) -> Bool {
+        return false
+    }
+    
+    static func preprocessBody(_ data: inout Data, mark: [String: Any]?) -> Bool {
         return false
     }
     

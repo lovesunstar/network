@@ -35,6 +35,12 @@ public extension Network {
         }
         
         @discardableResult
+        open func mark(_ mark: [String: Any]?) -> Self {
+            requestExtra = mark
+            return self
+        }
+        
+        @discardableResult
         open func appendCommonParameters(_ append: Bool) -> Self {
             vappendCommonParameters = append
             return self
@@ -158,6 +164,8 @@ public extension Network {
         
         internal var httpMethod: AFMethod = .get
         internal var postParameters: [String : Any]?
+        
+        internal var requestExtra: [String : Any]?
     }
     
     /**
@@ -227,11 +235,18 @@ public extension Network {
             }
             mutableURLRequest.cachePolicy = vcachePolicy
             guard var encodedURLRequest = try? parameterEncoding.asAFParameterEncoding().encode(mutableURLRequest, with: postParameters) else { return nil }
+            if let HTTPBody = encodedURLRequest.httpBody, let client = Network.client {
+                var newHTTPBody = HTTPBody
+                let processed = client.preprocessBody(&newHTTPBody, mark: requestExtra)
+                if newHTTPBody.count > 0 && processed {
+                    encodedURLRequest.httpBody = newHTTPBody
+                }
+            }
             // GZIP Compress
             if vgzipEnabled {
                 if let HTTPBody = encodedURLRequest.httpBody, let client = Network.client {
                     var newHTTPBody = HTTPBody
-                    let compressed = client.compressDataUsingGZip(&newHTTPBody)
+                    let compressed = client.compressBodyUsingGZip(&newHTTPBody)
                     if newHTTPBody.count > 0 && compressed {
                         encodedURLRequest.setValue("gzip", forHTTPHeaderField: "Content-Encoding")
                         encodedURLRequest.httpBody = newHTTPBody
