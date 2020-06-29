@@ -52,7 +52,7 @@
 		E07BD425C4EA9ADF15DDFCDB10D0B2FB /* MultipartUpload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BDE34987683B80FE97BBE5736A439B6 /* MultipartUpload.swift */; };
 		E4E12208D5246E64B7E6CCAE987ADB03 /* URLRequest+Alamofire.swift in Sources */ = {isa = PBXBuildFile; fileRef = D578A4BA4B36B12F7C081E8ED1215837 /* URLRequest+Alamofire.swift */; };
 		E9A5AC2F471699CCA516952A5FEB990B /* DispatchQueue+Alamofire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E408574C32514C9D9055B5A00125B4 /* DispatchQueue+Alamofire.swift */; };
-		F624ED5B24A9C52000FF82EA /* CustomJSONResponseSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F624ED5A24A9C52000FF82EA /* CustomJSONResponseSerializer.swift */; };
+		F624ED6024A9DE9500FF82EA /* CustomJSONResponseSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F624ED5F24A9DE9500FF82EA /* CustomJSONResponseSerializer.swift */; };
 		F71789DC91A75033EFB79DB828676451 /* Response.swift in Sources */ = {isa = PBXBuildFile; fileRef = 325AADD7113A629C5C8D34CF07909EFD /* Response.swift */; };
 /* End PBXBuildFile section */
 
@@ -143,7 +143,7 @@
 		DF2F1C5CA95DC0237D88DB6778F7B9C3 /* Request.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Request.swift; path = Network/Classes/Request.swift; sourceTree = "<group>"; };
 		E75385BF42094C35CE2C81EC373A7C74 /* Pods-Network_Example-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-Network_Example-acknowledgements.markdown"; sourceTree = "<group>"; };
 		F32AE372DFE6FD24130485425AB20E75 /* Pods_Network_Example.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Network_Example.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		F624ED5A24A9C52000FF82EA /* CustomJSONResponseSerializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomJSONResponseSerializer.swift; sourceTree = "<group>"; };
+		F624ED5F24A9DE9500FF82EA /* CustomJSONResponseSerializer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CustomJSONResponseSerializer.swift; path = Network/Classes/CustomJSONResponseSerializer.swift; sourceTree = "<group>"; };
 		F832D5DCB54F4499206CA6D8DECB63DA /* Session.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Session.swift; path = Source/Session.swift; sourceTree = "<group>"; };
 		F8F8D45423380B5704B372FAF4D32C33 /* Pods-Network_Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-Network_Example.release.xcconfig"; sourceTree = "<group>"; };
 		FC87D7C9C22946B653EC891AD65CA774 /* NetworkReachabilityManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NetworkReachabilityManager.swift; path = Source/NetworkReachabilityManager.swift; sourceTree = "<group>"; };
@@ -235,10 +235,10 @@
 		7CB03FE3BAC01FFF358ECA62D6DE7C5D /* Network */ = {
 			isa = PBXGroup;
 			children = (
+				F624ED5F24A9DE9500FF82EA /* CustomJSONResponseSerializer.swift */,
 				4F8C203F3FC0764AA543EB3E64B93225 /* HTTPBuilder.swift */,
 				468E05A9321B814BFFFC3D6E90600B33 /* Network.swift */,
 				DF2F1C5CA95DC0237D88DB6778F7B9C3 /* Request.swift */,
-				F624ED5A24A9C52000FF82EA /* CustomJSONResponseSerializer.swift */,
 				2293051427ED97FAD8BFEAE3DD9ACF12 /* Pod */,
 				A7D2F281B5432BE2254B8D28873CE475 /* Support Files */,
 			);
@@ -507,7 +507,7 @@
 			files = (
 				05CC73232FCE7AF986D06267463AE93D /* HTTPBuilder.swift in Sources */,
 				1B7094F4881EE6E5D238C36E2BD77814 /* Network-dummy.m in Sources */,
-				F624ED5B24A9C52000FF82EA /* CustomJSONResponseSerializer.swift in Sources */,
+				F624ED6024A9DE9500FF82EA /* CustomJSONResponseSerializer.swift in Sources */,
 				68F55F613AE75DE4A677638B460228EC /* Network.swift in Sources */,
 				D20160BC87A9871750D84BB39A7E6B0E /* Request.swift in Sources */,
 			);
