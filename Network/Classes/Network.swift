@@ -32,53 +32,19 @@ public protocol NetworkClientProtocol: NSObjectProtocol {
     
     
     /**
-     - returns: processed
+     * - Parameter data: 原始的 http-body
+     * - Parameter mark: 附带的额外信息
+     * - Parameter additionalHeaders: 产生的额外的 header
+     * - Returns: processed
      */
-    static func preprocessBody(_ data: inout Data, mark: [String: Any]?) -> Bool
+    static func preprocessRequestBody(_ data: inout Data, mark: [String: Any]?, additionalHeaders: inout [String: String]) -> Bool
+    static func preprocessResponseBody(_ data: inout Data, response: URLResponse?) -> Bool
     
     static func willProcessRequest(_ URLString: inout String, headers: inout [String: String], parameters: inout [String: Any]?)
     
     static func willProcessResponse(_ request: URLRequest, totalDuration: TimeInterval, responseData: Any?, error: Error?, urlResponse: HTTPURLResponse?, metrics: URLSessionTaskMetrics?)
 }
 
-extension NetworkClientProtocol {
-    
-    static var commonParameters: [String: Any]? {
-        return nil
-    }
-    
-    static func compressBodyUsingGZip(_ data: inout Data) -> Bool {
-        return false
-    }
-    
-    static func preprocessBody(_ data: inout Data, mark: [String: Any]?) -> Bool {
-        return false
-    }
-    
-    static func willProcessRequest(_ URLString: inout String, headers: inout [String: String], parameters: inout [String: Any]?) {
-        
-    }
-    
-    static func willProcessResponse(_ request: URLRequest, totalDuration: TimeInterval, responseData: Any?, error: Error?, urlResponse: HTTPURLResponse?, metrics: URLSessionTaskMetrics?) {
-        
-    }
-    
-    static var commonParametersSorter: ((String, String)->Bool)? {
-        return nil
-    }
-    
-    static var requestHeaders: [String: String]? {
-        return nil
-    }
- 
-    static var isGZipEnabled: Bool {
-        return false
-    }
-    
-    static var timeoutInterval: TimeInterval {
-        return 15
-    }
-}
 
 public class Network {
     

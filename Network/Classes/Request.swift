@@ -66,7 +66,7 @@ public extension Network {
             queue: DispatchQueue? = nil,
             options: JSONSerialization.ReadingOptions,
             completionHandler: ((URLRequest?, HTTPURLResponse?, Any?, NSError?) -> Void)?) {
-            (request as? Alamofire.DataRequest)?.responseJSON(queue: queue ?? DispatchQueue.main, options: options) { (results) in
+            (request as? Alamofire.DataRequest)?.responseCustomJSON(queue: queue ?? DispatchQueue.main, options: options) { (results) in
                 let request = results.request, response = results.response
                 if let urlRequest = request {
                     //

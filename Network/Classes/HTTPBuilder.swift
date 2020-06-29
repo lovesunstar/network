@@ -237,9 +237,15 @@ public extension Network {
             guard var encodedURLRequest = try? parameterEncoding.asAFParameterEncoding().encode(mutableURLRequest, with: postParameters) else { return nil }
             if let HTTPBody = encodedURLRequest.httpBody, let client = Network.client {
                 var newHTTPBody = HTTPBody
-                let processed = client.preprocessBody(&newHTTPBody, mark: requestExtra)
-                if newHTTPBody.count > 0 && processed {
+                var additionalHeaders = [String: String]()
+                let processed = client.preprocessRequestBody(&newHTTPBody, mark: requestExtra, additionalHeaders: &additionalHeaders)
+                if processed && newHTTPBody.count > 0 {
                     encodedURLRequest.httpBody = newHTTPBody
+                    if !additionalHeaders.isEmpty {
+                        for (k, v) in additionalHeaders {
+                            encodedURLRequest.setValue(v, forHTTPHeaderField: k)
+                        }
+                    }
                 }
             }
             // GZIP Compress
