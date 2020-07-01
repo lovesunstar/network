@@ -42,6 +42,10 @@ public extension Network {
             return httpBuilder.timeoutInterval * TimeInterval(httpBuilder.retryTimes + 1)
         }
         
+        public var urlString: String {
+            return httpBuilder.urlString
+        }
+        
         fileprivate func canRetryWithError(_ error: Error) -> Bool {
             return Request.isErrorEnabledToRetry(error) && retriedTimes < maximumNumberOfRetryTimes
         }
@@ -111,8 +115,15 @@ public extension Network {
             super.init()
         }
         
+        public override var urlString: String {
+            if let url = request.request?.url?.absoluteString, !url.isEmpty {
+                return url
+            }
+            return httpBuilder.urlString
+        }
+        
         public override var timeoutInterval: TimeInterval {
-            if let requestTimeoutInterval = request.request?.timeoutInterval {
+            if let requestTimeoutInterval = request.request?.timeoutInterval, requestTimeoutInterval > 0 {
                 return requestTimeoutInterval
             }
             return httpBuilder.timeoutInterval
@@ -153,8 +164,15 @@ public extension Network {
             super.init()
         }
         
+        public override var urlString: String {
+            if let url = request?.request?.url?.absoluteString, !url.isEmpty {
+                return url
+            }
+            return httpBuilder.urlString
+        }
+        
         public override var timeoutInterval: TimeInterval {
-            if let requestTimeoutInterval = request?.request?.timeoutInterval {
+            if let requestTimeoutInterval = request?.request?.timeoutInterval, requestTimeoutInterval > 0 {
                 return requestTimeoutInterval
             }
             return httpBuilder.timeoutInterval
