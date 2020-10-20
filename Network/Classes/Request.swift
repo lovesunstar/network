@@ -34,6 +34,8 @@ public extension Network {
             
         }
         
+        private var hasFinishCallback = false
+        
         public var didCancelCallback: ((Request) ->Void)?
         
         public internal(set) weak var network: Network?
@@ -71,6 +73,9 @@ public extension Network {
             options: JSONSerialization.ReadingOptions,
             completionHandler: ((URLRequest?, HTTPURLResponse?, Any?, NSError?) -> Void)?) {
             (request as? Alamofire.DataRequest)?.responseCustomJSON(queue: queue ?? DispatchQueue.main, options: options) { (results) in
+                if self.hasFinishCallback {
+                    return
+                }
                 let request = results.request, response = results.response
                 if let urlRequest = request {
                     //
@@ -96,6 +101,7 @@ public extension Network {
                 if !cancelled {
                     completionHandler?(request, response, results.value, underlyingError as NSError?)
                 }
+                self.hasFinishCallback = true
             }
         }
     }
