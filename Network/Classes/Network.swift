@@ -10,7 +10,7 @@ import Foundation
 import CoreFoundation
 import Alamofire
 
-typealias AFManager = Alamofire.Session
+typealias AFSession = Alamofire.Session
 typealias AFMethod = Alamofire.HTTPMethod
 typealias AFRequest = Alamofire.Request
 
@@ -55,6 +55,7 @@ public class Network {
         case high = 0.75
     }
     
+    
     public static func request(_ url: String) -> RequestBuilder {
         let builder = shared.request(url)
         return builder
@@ -65,7 +66,7 @@ public class Network {
         return builder
     }
     
-    public static let shared = Network(configuration: AFManager.default.session.configuration)
+    public static let shared = Network(configuration: AFSession.default.session.configuration)
     
     public static var client: NetworkClientProtocol.Type? {
         get {
@@ -94,6 +95,12 @@ public class Network {
         }
     }
     
+    public static var serverTrustManager: ServerTrustManager? {
+        didSet {
+            shared.reset()
+        }
+    }
+    
     public var client: NetworkClientProtocol.Type? = nil
     
     public var configuration: URLSessionConfiguration = URLSessionConfiguration.default {
@@ -106,7 +113,7 @@ public class Network {
                 proxyConfiguration[kCFNetworkProxiesHTTPEnable as AnyHashable] = 1
                 configuration.connectionProxyDictionary = proxyConfiguration
             }
-            manager = AFManager(configuration: configuration)
+            afSession = AFSession(configuration: configuration, serverTrustManager: Network.serverTrustManager)
         }
     }
     
@@ -119,35 +126,35 @@ public class Network {
                     proxyConfiguration[kCFNetworkProxiesHTTPProxy as AnyHashable] = item.host
                     proxyConfiguration[kCFNetworkProxiesHTTPPort as AnyHashable] = port
                     proxyConfiguration[kCFNetworkProxiesHTTPEnable as AnyHashable] = 1
-                    let sessionConfiguration = AFManager.default.session.configuration
+                    let sessionConfiguration = AFSession.default.session.configuration
                     sessionConfiguration.connectionProxyDictionary = proxyConfiguration
-                    manager = AFManager(configuration: sessionConfiguration)
+                    afSession = AFSession(configuration: sessionConfiguration, serverTrustManager: Network.serverTrustManager)
                 }
             } else {
-                manager = AFManager.default
+                afSession = AFSession(configuration: AFSession.default.session.configuration, serverTrustManager: Network.serverTrustManager)
             }
         }
     }
     
-    internal var manager: AFManager
+    internal var afSession: AFSession
     
     public init(configuration: URLSessionConfiguration) {
-        manager = AFManager(configuration: configuration)
+        afSession = AFSession(configuration: configuration, serverTrustManager: Network.serverTrustManager)
         self.configuration = configuration
     }
     
     public func reset() {
-        manager = AFManager(configuration: configuration)
+        afSession = AFSession(configuration: configuration, serverTrustManager: Network.serverTrustManager)
     }
     
     public func request(_ url: String) -> RequestBuilder {
-        let builder = Network.RequestBuilder(url: url, manager: manager, network: self)
+        let builder = Network.RequestBuilder(url: url, session: afSession, network: self)
         builder.querySorter = self.client?.commonParametersSorter
         return builder
     }
     
     public func upload(_ url: String) -> UploadBuilder {
-        let builder = Network.UploadBuilder(url: url, manager: manager, network: self)
+        let builder = Network.UploadBuilder(url: url, session: afSession, network: self)
         builder.querySorter = self.client?.commonParametersSorter
         return builder
     }

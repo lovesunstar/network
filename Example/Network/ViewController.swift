@@ -82,10 +82,6 @@ class ViewController: UIViewController {
         Network.request("https://httpbin.org/post").query(["foo": "bar"]).post(["foo_p": "bar_p"]).encoding(.json(JSONSerialization.WritingOptions())).build()?.responseJSON(completionHandler: { (_, urlResponse, jsonData, error) -> Void in
             print("Request5", urlResponse ?? "", jsonData ?? "", error ?? "")
         })
-        
-        Network.request("https://httpbin.org/user-agent").headers(["User-Agent": "(Network 0.1.1; Foo bar)"]).build()?.responseJSON(completionHandler: { (_, urlResponse, jsonData, error) -> Void in
-            print(urlResponse ?? "", jsonData ?? "", error ?? "")
-        })
         let data: Data = {
             let longText: NSMutableString = ""
             for _ in 0..<10000 {

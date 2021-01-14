@@ -12,14 +12,14 @@ public extension Network {
     
     class HTTPBuilder: NSObject {
         
-        internal weak var manager: AFManager?
+        internal weak var session: AFSession?
         internal weak var network: Network?
         
         internal var querySorter: ((String, String)->Bool)?
         
-        required init(url: String, manager: AFManager, network: Network) {
+        required init(url: String, session: AFSession, network: Network) {
             urlString = url
-            self.manager = manager
+            self.session = session
             self.network = network
             super.init()
         }
@@ -259,7 +259,7 @@ public extension Network {
                     }
                 }
             }
-            let afRequest = (manager ?? AFManager.default).request(encodedURLRequest)
+            let afRequest = (session ?? AFSession.default).request(encodedURLRequest)
             afRequest.task?.priority = vpriority.rawValue
             if let dc = downloadProgressCallback {
                 afRequest.downloadProgress(queue: downloadProgressQueue ?? DispatchQueue.main, closure: dc)
@@ -310,8 +310,8 @@ public extension Network {
             }
         }
         
-        required init(url: String, manager: AFManager, network: Network) {
-            super.init(url: url, manager: manager, network: network)
+        required init(url: String, session: AFSession, network: Network) {
+            super.init(url: url, session: session, network: network)
             timeoutInterval = 180
         }
         
@@ -384,7 +384,7 @@ public extension Network {
             urlRequest.httpMethod = "POST"
             urlRequest.timeoutInterval = timeoutInterval
             
-            let uploadRequest = (manager ?? AF).upload(multipartFormData: { (multipartFormData) in
+            let uploadRequest = (session ?? AF).upload(multipartFormData: { (multipartFormData) in
                 postParts?.forEach({ k, v in
                     if let data = ((v as? String) ?? "\(v)").data(using: .utf8) {
                         multipartFormData.append(data, withName: k)
