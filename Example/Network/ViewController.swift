@@ -54,6 +54,13 @@ class NetworkClient: NSObject, NetworkClientProtocol {
     
     static func willProcessResponse(_ request: URLRequest, totalDuration: TimeInterval, responseData: Any?, error: Error?, urlResponse: HTTPURLResponse?, metrics: URLSessionTaskMetrics?) {
     }
+    
+    static func serverTrustEvaluator(forHost host: String) -> ServerTrustEvaluating? {
+        if host == "45.40.61.50" {
+//            return DefaultTrustEvaluator(validateHost: false)
+        }
+        return nil
+    }
 }
 
 class ViewController: UIViewController {

@@ -43,8 +43,23 @@ public protocol NetworkClientProtocol: NSObjectProtocol {
     static func willProcessRequest(_ URLString: inout String, headers: inout [String: String], parameters: inout [String: Any]?)
     
     static func willProcessResponse(_ request: URLRequest, totalDuration: TimeInterval, responseData: Any?, error: Error?, urlResponse: HTTPURLResponse?, metrics: URLSessionTaskMetrics?)
+    
+    static func serverTrustEvaluator(forHost host: String) -> ServerTrustEvaluating?
 }
 
+class HTTPServerTrustManager: ServerTrustManager {
+    
+    init() {
+        super.init(allHostsMustBeEvaluated: true, evaluators: [:])
+    }
+        
+    override func serverTrustEvaluator(forHost host: String) throws -> ServerTrustEvaluating? {
+        guard let c = Network.client else {
+            return nil
+        }
+        return c.serverTrustEvaluator(forHost: host)
+    }
+}
 
 public class Network {
     
@@ -86,18 +101,14 @@ public class Network {
         }
     }
     
+    static let trustManager = HTTPServerTrustManager()
+    
     public static var proxyItem: ProxyItem? {
         get {
             return shared.proxyItem
         }
         set {
             shared.proxyItem = newValue
-        }
-    }
-    
-    public static var serverTrustManager: ServerTrustManager? {
-        didSet {
-            shared.reset()
         }
     }
     
@@ -113,7 +124,7 @@ public class Network {
                 proxyConfiguration[kCFNetworkProxiesHTTPEnable as AnyHashable] = 1
                 configuration.connectionProxyDictionary = proxyConfiguration
             }
-            afSession = AFSession(configuration: configuration, serverTrustManager: Network.serverTrustManager)
+            afSession = AFSession(configuration: configuration, serverTrustManager: Network.trustManager)
         }
     }
     
@@ -128,10 +139,10 @@ public class Network {
                     proxyConfiguration[kCFNetworkProxiesHTTPEnable as AnyHashable] = 1
                     let sessionConfiguration = AFSession.default.session.configuration
                     sessionConfiguration.connectionProxyDictionary = proxyConfiguration
-                    afSession = AFSession(configuration: sessionConfiguration, serverTrustManager: Network.serverTrustManager)
+                    afSession = AFSession(configuration: sessionConfiguration, serverTrustManager: Network.trustManager)
                 }
             } else {
-                afSession = AFSession(configuration: AFSession.default.session.configuration, serverTrustManager: Network.serverTrustManager)
+                afSession = AFSession(configuration: AFSession.default.session.configuration, serverTrustManager: Network.trustManager)
             }
         }
     }
@@ -139,12 +150,12 @@ public class Network {
     internal var afSession: AFSession
     
     public init(configuration: URLSessionConfiguration) {
-        afSession = AFSession(configuration: configuration, serverTrustManager: Network.serverTrustManager)
+        afSession = AFSession(configuration: configuration, serverTrustManager: Network.trustManager)
         self.configuration = configuration
     }
     
     public func reset() {
-        afSession = AFSession(configuration: configuration, serverTrustManager: Network.serverTrustManager)
+        afSession = AFSession(configuration: configuration, serverTrustManager: Network.trustManager)
     }
     
     public func request(_ url: String) -> RequestBuilder {
