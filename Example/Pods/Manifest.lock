@@ -1,23 +1,23 @@
 PODS:
-  - Alamofire (5.0.0)
-  - Network (3.1.3):
+  - Alamofire (5.4.3)
+  - Requests (4.0):
     - Alamofire
 
 DEPENDENCIES:
-  - Network (from `../`)
+  - Requests (from `../`)
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
     - Alamofire
 
 EXTERNAL SOURCES:
-  Network:
+  Requests:
     :path: "../"
 
 SPEC CHECKSUMS:
-  Alamofire: 58ff2bfb8daaacaa233d5c36e37b10a5248f59b1
-  Network: f03a08b0c004eb2915cbc1dc90b62fe7ccdd90fa
+  Alamofire: e447a2774a40c996748296fa2c55112fdbbc42f9
+  Requests: 96f524672a0e4cc398a52b7658bd2caf796cd5a9
 
-PODFILE CHECKSUM: b9a5e65d55c702d0efcd7e2950a8d150b6be09a3
+PODFILE CHECKSUM: 8e97cfe86743d1532837f564cada452e445638a9
 
-COCOAPODS: 1.8.3
+COCOAPODS: 1.10.1

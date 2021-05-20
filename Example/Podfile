@@ -2,6 +2,6 @@ use_frameworks!
 platform :ios, '10.0'
 source 'https://github.com/CocoaPods/Specs.git'
 
-target 'Network_Example' do
-  pod 'Network', :path => '../'
+target 'Requests_Example' do
+  pod 'Requests', :path => '../'
 end
