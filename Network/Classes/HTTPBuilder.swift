@@ -8,432 +8,160 @@
 import Foundation
 import Alamofire
 
-public extension Network {
+public class HTTPBuilder: NSObject {
     
-    class HTTPBuilder: NSObject {
-        
-        internal weak var session: AFSession?
-        internal weak var network: Network?
-        
-        internal var querySorter: ((String, String)->Bool)?
-        
-        required init(url: String, session: AFSession, network: Network) {
-            urlString = url
-            self.session = session
-            self.network = network
-            super.init()
-        }
-        
-        public override init() {
-            fatalError()
-        }
-        
-        @discardableResult
-        open func method(_ method: Alamofire.HTTPMethod) -> Self {
-            httpMethod = method
-            return self
-        }
-        
-        @discardableResult
-        open func mark(_ mark: [String: Any]?) -> Self {
-            requestExtra = mark
-            return self
-        }
-        
-        @discardableResult
-        open func appendCommonParameters(_ append: Bool) -> Self {
-            vappendCommonParameters = append
-            return self
-        }
-        
-        @discardableResult
-        open func query(_ parameters: [String : Any]?) -> Self {
-            queryParameters = parameters
-            return self
-        }
-        
-        @discardableResult
-        open func post(_ parameters: [String : Any]?) -> Self {
-            postParameters = parameters
-            if let p = parameters , !p.isEmpty {
-                let _ = method(.post)
-            }
-            return self
-        }
-        
-        @discardableResult
-        open func content(_ parameters: [String : Any]?) -> Self {
-            postParameters = parameters
-            return self
-        }
-        
-        @discardableResult
-        open func headers(_ headers: [String : String]?) -> Self {
-            vheaders = headers
-            return self
-        }
-        
-        @discardableResult
-        open func gzipEnabled(_ enabled: Bool) -> Self {
-            vgzipEnabled = enabled
-            return self
-        }
-        
-        @discardableResult
-        open func retry(_ retryTimes: UInt16) -> Self {
-            self.retryTimes = retryTimes
-            return self
-        }
-        
-        @discardableResult
-        open func timeout(_ timeout: TimeInterval) -> Self {
-            timeoutInterval = timeout
-            return self
-        }
-        
-        @discardableResult
-        open func cachePolicy(_ policy: NSURLRequest.CachePolicy) -> Self {
-            vcachePolicy = policy
-            return self
-        }
-        
-        @discardableResult
-        open func priority(_ priority: Network.Priority) -> Self {
-            vpriority = priority
-            return self
-        }
-        
-        @discardableResult
-        open func encoding(_ encoding: ParameterEncoding) -> Self {
-            parameterEncoding = encoding
-            return self
-        }
-        
-        @discardableResult
-        open func downloadProgress(on queue: DispatchQueue = DispatchQueue.main, callback:((Progress)->Void)?) -> Self {
-            downloadProgressQueue = queue
-            downloadProgressCallback = callback
-            return self
-        }
-      
-        fileprivate func append(_ parameters: [String : Any]?, to absoluteString: String) -> String {
-            guard let parameters = parameters , !parameters.isEmpty else {
-                return absoluteString
-            }
-            var results = absoluteString
-            var components: [(String, String)] = []
-            let sorter: (String, String) -> Bool = querySorter ?? { (lhs: String, rhs: String) -> Bool in
-                return lhs < rhs
-            }
-            for key in Array(parameters.keys).sorted(by: sorter) {
-                let value = parameters[key]!
-                components += Alamofire.URLEncoding.queryString.queryComponents(fromKey: key, value: value)
-            }
-            let query = (components.map { "\($0)=\($1)" } as [String]).joined(separator: "&")
-            if !query.isEmpty {
-                if absoluteString.contains("?") {
-                    results.append("&")
-                } else {
-                    results.append("?")
-                }
-                results.append(query)
-            }
-            return results
-        }
-        
-        open func build() -> Request? {
-            return nil
-        }
-        
-        internal var urlString: String
-        internal var vheaders: [String : String]?
-        internal var queryParameters: [String : Any]?
-        internal var parameterEncoding: ParameterEncoding = .url
-        internal var vappendCommonParameters = true
-        internal var retryTimes: UInt16 = 0
-        internal var timeoutInterval: TimeInterval = Network.client?.timeoutInterval ?? 15
-        internal var vcachePolicy = NSURLRequest.CachePolicy.useProtocolCachePolicy
-        internal var vpriority = Network.Priority.default
-        
-        internal var downloadProgressQueue: DispatchQueue?
-        internal var downloadProgressCallback: ((Progress)->Void)?
-        
-        internal var vgzipEnabled = Network.client?.isGZipEnabled ?? false
-        /// 发送请求的时间（unix时间戳）
-        internal var requestTimestamp: TimeInterval = 0
-        
-        internal var httpMethod: AFMethod = .get
-        internal var postParameters: [String : Any]?
-        
-        internal var requestExtra: [String : Any]?
+    internal weak var session: AFSession?
+    internal weak var network: Manager?
+    
+    internal var querySorter: ((String, String)->Bool)?
+    
+    required init(url: String, session: AFSession, network: Manager) {
+        urlString = url
+        self.session = session
+        self.network = network
+        super.init()
     }
     
-    /**
-     网络请求
-     <br />
-     Usage:
-     <br />
-     NewsMaster.Network.request(url)
-     .method([GET|POST|HEAD|PATCH|DELETE...])?<br />
-     .get([String:Any])?<br />
-     .post([String:Any])?<br />
-     .retry(retryTimes)?<br />
-     .headers(["Accept": "xxx"])?<br />
-     .encoding(FormData|Mutilpart|JSON|...)?<br />
-     .priority(Network.Default)?<br />
-     .timeout(seconds)?<br />
-     .append(commonParameters)?<br />
-     .pack() unwrap?.pon_response { _, _, results, error in logic }
-     */
-    class RequestBuilder: HTTPBuilder {
-        
-        /// NOTE: never use this way on main thread
-        open func syncResponseJSON(options: JSONSerialization.ReadingOptions = .allowFragments) -> (URLResponse?, Any?, NSError?) {
-            if let request = build() {
-                var response: URLResponse?
-                var responseData: Any?
-                var responseError: NSError?
-                let semaphore = DispatchSemaphore(value: 0)
-                let _ = request.responseJSON(queue: DispatchQueue.global(qos: .default), options: options, completionHandler: { (_, URLResponse, data, error) -> Void in
-                    response = URLResponse
-                    responseData = data
-                    responseError = error
-                    semaphore.signal()
-                })
-                let _ = semaphore.wait(timeout: DispatchTime.distantFuture)
-                return (response, responseData, responseError)
-            }
-            return (nil, nil, nil)
-        }
-        
-        open override func build() -> Request? {
-            if self.urlString.isEmpty {
-                return nil
-            }
-            var absoluteString = append(queryParameters, to: self.urlString)
-            if vappendCommonParameters {
-                // 从CommonParams中删除 getParameters
-                if let commonParameters = Network.client?.commonParameters {
-                    let restCommonParameters = commonParameters - queryParameters
-                    absoluteString = append(restCommonParameters, to: absoluteString)
-                }
-            }
-            var headers = [String : String]()
-            if let defaultHeaders = Network.client?.requestHeaders {
-                headers += defaultHeaders
-            }
-            headers += vheaders
-            var newURLString = absoluteString as String
-            var postParameters = self.postParameters
-            Network.client?.willProcessRequest(&newURLString, headers: &headers, parameters: &postParameters)
-            guard var mutableURLRequest = mutableRequest(newURLString, method: httpMethod, headers: headers) else {
-                return nil
-            }
-            requestTimestamp = Date().timeIntervalSince1970
-            if timeoutInterval != 0 {
-                mutableURLRequest.timeoutInterval = timeoutInterval
-            }
-            mutableURLRequest.cachePolicy = vcachePolicy
-            guard var encodedURLRequest = try? parameterEncoding.asAFParameterEncoding().encode(mutableURLRequest, with: postParameters) else { return nil }
-            if let HTTPBody = encodedURLRequest.httpBody, let client = Network.client {
-                var newHTTPBody = HTTPBody
-                var additionalHeaders = [String: String]()
-                let processed = client.preprocessRequestBody(&newHTTPBody, mark: requestExtra, additionalHeaders: &additionalHeaders)
-                if processed && newHTTPBody.count > 0 {
-                    encodedURLRequest.httpBody = newHTTPBody
-                    if !additionalHeaders.isEmpty {
-                        for (k, v) in additionalHeaders {
-                            encodedURLRequest.setValue(v, forHTTPHeaderField: k)
-                        }
-                    }
-                }
-            }
-            // GZIP Compress
-            if vgzipEnabled {
-                if let HTTPBody = encodedURLRequest.httpBody, let client = Network.client {
-                    var newHTTPBody = HTTPBody
-                    let compressed = client.compressBodyUsingGZip(&newHTTPBody)
-                    if newHTTPBody.count > 0 && compressed {
-                        encodedURLRequest.setValue("gzip", forHTTPHeaderField: "Content-Encoding")
-                        encodedURLRequest.httpBody = newHTTPBody
-                    }
-                }
-            }
-            let afRequest = (session ?? AFSession.default).request(encodedURLRequest)
-            afRequest.task?.priority = vpriority.rawValue
-            if let dc = downloadProgressCallback {
-                afRequest.downloadProgress(queue: downloadProgressQueue ?? DispatchQueue.main, closure: dc)
-            }
-            let resultRequest = Network.NormalRequest(builder: self, request: afRequest)
-            resultRequest.maximumNumberOfRetryTimes = retryTimes
-            resultRequest.network = self.network
-            return resultRequest
-        }
-        
-        fileprivate func mutableRequest(_ URLString: String, method: AFMethod, headers: [String : String]?) -> URLRequest? {
-            guard let URL = URL(string: URLString) else {
-                return nil
-            }
-            var request = URLRequest(url: URL)
-            request.httpMethod = method.rawValue
-            if let headers = headers {
-                for (headerField, headerValue) in headers {
-                    request.setValue(headerValue, forHTTPHeaderField: headerField)
-                }
-            }
-            return request
-        }
+    public override init() {
+        fatalError()
     }
     
-    class UploadBuilder: HTTPBuilder {
-        
-        private class Part {
-            var name: String
-            var fileName: String?
-            var mimeType: String?
-            
-            init(name: String) {
-                self.name = name
-            }
+    @discardableResult
+    open func method(_ method: Alamofire.HTTPMethod) -> Self {
+        httpMethod = method
+        return self
+    }
+    
+    @discardableResult
+    open func mark(_ mark: [String: Any]?) -> Self {
+        requestExtra = mark
+        return self
+    }
+    
+    @discardableResult
+    open func appendCommonParameters(_ append: Bool) -> Self {
+        vappendCommonParameters = append
+        return self
+    }
+    
+    @discardableResult
+    open func query(_ parameters: [String : Any]?) -> Self {
+        queryParameters = parameters
+        return self
+    }
+    
+    @discardableResult
+    open func post(_ parameters: [String : Any]?) -> Self {
+        postParameters = parameters
+        if let p = parameters , !p.isEmpty {
+            let _ = method(.post)
         }
-        
-        internal var uploadProgressQueue: DispatchQueue?
-        internal var uploadProgressCallback: ((Progress)->Void)?
-        
-        private class Data: Part {
-            
-            var data: Foundation.Data
-            
-            init(name: String, data: Foundation.Data) {
-                self.data = data
-                super.init(name: name)
-            }
+        return self
+    }
+    
+    @discardableResult
+    open func content(_ parameters: [String : Any]?) -> Self {
+        postParameters = parameters
+        return self
+    }
+    
+    @discardableResult
+    open func headers(_ headers: [String : String]?) -> Self {
+        vheaders = headers
+        return self
+    }
+    
+    @discardableResult
+    open func gzipEnabled(_ enabled: Bool) -> Self {
+        vgzipEnabled = enabled
+        return self
+    }
+    
+    @discardableResult
+    open func retry(_ retryTimes: UInt16) -> Self {
+        self.retryTimes = retryTimes
+        return self
+    }
+    
+    @discardableResult
+    open func timeout(_ timeout: TimeInterval) -> Self {
+        timeoutInterval = timeout
+        return self
+    }
+    
+    @discardableResult
+    open func cachePolicy(_ policy: NSURLRequest.CachePolicy) -> Self {
+        vcachePolicy = policy
+        return self
+    }
+    
+    @discardableResult
+    open func priority(_ priority: Manager.Priority) -> Self {
+        vpriority = priority
+        return self
+    }
+    
+    @discardableResult
+    open func encoding(_ encoding: ParameterEncoding) -> Self {
+        parameterEncoding = encoding
+        return self
+    }
+    
+    @discardableResult
+    open func downloadProgress(on queue: DispatchQueue = DispatchQueue.main, callback:((Progress)->Void)?) -> Self {
+        downloadProgressQueue = queue
+        downloadProgressCallback = callback
+        return self
+    }
+  
+    func append(_ parameters: [String : Any]?, to absoluteString: String) -> String {
+        guard let parameters = parameters , !parameters.isEmpty else {
+            return absoluteString
         }
-        
-        required init(url: String, session: AFSession, network: Network) {
-            super.init(url: url, session: session, network: network)
-            timeoutInterval = 180
+        var results = absoluteString
+        var components: [(String, String)] = []
+        let sorter: (String, String) -> Bool = querySorter ?? { (lhs: String, rhs: String) -> Bool in
+            return lhs < rhs
         }
-        
-        @discardableResult
-        open func append(data: Foundation.Data, name: String, fileName: String? = nil, mimeType: String? = nil) -> Self {
-            let part = Data(name: name, data: data)
-            part.fileName = fileName
-            part.mimeType = mimeType
-            dataParts.append(part)
-            return self
+        for key in Array(parameters.keys).sorted(by: sorter) {
+            let value = parameters[key]!
+            components += Alamofire.URLEncoding.queryString.queryComponents(fromKey: key, value: value)
         }
-        
-        private class File: Part {
-            var fileURL: URL
-            
-            init(name: String, fileURL: URL) {
-                self.fileURL = fileURL
-                super.init(name: name)
-            }
-        }
-        
-        @discardableResult
-        open func append(file fileURL: URL, name: String, fileName: String, mimeType: String? = nil) -> Self {
-            let part = File(name: name, fileURL: fileURL)
-            part.fileName = fileName
-            part.mimeType = mimeType
-            fileParts.append(part)
-            return self
-        }
-        
-        @discardableResult
-        open func uploadProgress(on queue: DispatchQueue = DispatchQueue.main, callback:((Progress)->Void)?) -> Self {
-            uploadProgressQueue = queue
-            uploadProgressCallback = callback
-            return self
-        }
-        
-        open override func build() -> Request? {
-            if self.urlString.isEmpty {
-                return nil
-            }
-            let request = Network.UploadRequest(builder: self)
-            request.maximumNumberOfRetryTimes = retryTimes
-            
-            var absoluteString = append(queryParameters, to: self.urlString)
-            if vappendCommonParameters {
-                // 从CommonParams中删除 getParameters
-                if let commonParameters = Network.client?.commonParameters {
-                    let restCommonParameters = commonParameters - queryParameters
-                    absoluteString = append(restCommonParameters, to: absoluteString)
-                }
-            }
-            var headers = [String : String]()
-            if let defaultHeaders = Network.client?.requestHeaders {
-                headers += defaultHeaders
-            }
-            headers += vheaders
-            var postParameters = self.postParameters
-            Network.client?.willProcessRequest(&absoluteString, headers: &headers, parameters: &postParameters)
-            
-            let dataParts = self.dataParts
-            let fileParts = self.fileParts
-            let postParts = postParameters
-            
-            guard let url = URL(string: absoluteString) else { return nil }
-            var urlRequest = URLRequest(url: url)
-            for (headerField, headerValue) in headers {
-                urlRequest.setValue(headerValue, forHTTPHeaderField: headerField)
-            }
-            urlRequest.httpMethod = "POST"
-            urlRequest.timeoutInterval = timeoutInterval
-            
-            let uploadRequest = (session ?? AF).upload(multipartFormData: { (multipartFormData) in
-                postParts?.forEach({ k, v in
-                    if let data = ((v as? String) ?? "\(v)").data(using: .utf8) {
-                        multipartFormData.append(data, withName: k)
-                    }
-                })
-                dataParts.forEach({self.append($0, to: multipartFormData)})
-                fileParts.forEach({self.append($0, to: multipartFormData)})
-                }, with: urlRequest, usingThreshold: 2_000_000)
-            self.requestTimestamp = NSDate().timeIntervalSince1970
-            if let pq = uploadProgressCallback {
-                uploadRequest.uploadProgress(queue: uploadProgressQueue ?? DispatchQueue.main, closure: pq)
-            }
-            if let dc = downloadProgressCallback {
-                uploadRequest.downloadProgress(queue: downloadProgressQueue ?? DispatchQueue.main, closure: dc)
-            }
-            uploadRequest.task?.priority = vpriority.rawValue
-            request.request = uploadRequest
-            request.maximumNumberOfRetryTimes = self.retryTimes
-            request.network = self.network
-            request.startUploading()
-            return request
-        }
-        
-        private func append(_ data: Data, to multipartFormData: Alamofire.MultipartFormData) {
-            if let mimeType = data.mimeType {
-                if let fileName = data.fileName {
-                    multipartFormData.append(data.data, withName: data.name, fileName: fileName, mimeType: mimeType)
-                } else {
-                    multipartFormData.append(data.data, withName: data.name, mimeType: mimeType)
-                }
+        let query = (components.map { "\($0)=\($1)" } as [String]).joined(separator: "&")
+        if !query.isEmpty {
+            if absoluteString.contains("?") {
+                results.append("&")
             } else {
-                multipartFormData.append(data.data, withName: data.name)
+                results.append("?")
             }
+            results.append(query)
         }
-        
-        private func append(_ file: File, to multipartFormData: Alamofire.MultipartFormData) {
-            if let mimeType = file.mimeType {
-                if let fileName = file.fileName {
-                    multipartFormData.append(file.fileURL, withName: file.name, fileName: fileName, mimeType: mimeType)
-                } else {
-                    multipartFormData.append(file.fileURL, withName: file.name, fileName: "\(Date().timeIntervalSince1970)", mimeType: mimeType)
-                }
-            } else {
-                multipartFormData.append(file.fileURL, withName: file.name)
-            }
-        }
-        
-        private var dataParts = [Data]()
-        private var fileParts = [File]()
+        return results
     }
+    
+    open func build() -> Request? {
+        return nil
+    }
+    
+    internal var urlString: String
+    internal var vheaders: [String : String]?
+    internal var queryParameters: [String : Any]?
+    internal var parameterEncoding: ParameterEncoding = .url
+    internal var vappendCommonParameters = true
+    internal var retryTimes: UInt16 = 0
+    internal var timeoutInterval: TimeInterval = Manager.client?.timeoutInterval ?? 15
+    internal var vcachePolicy = NSURLRequest.CachePolicy.useProtocolCachePolicy
+    internal var vpriority = Manager.Priority.default
+    
+    internal var downloadProgressQueue: DispatchQueue?
+    internal var downloadProgressCallback: ((Progress)->Void)?
+    
+    internal var vgzipEnabled = Manager.client?.isGZipEnabled ?? false
+    /// 发送请求的时间（unix时间戳）
+    internal var requestTimestamp: TimeInterval = 0
+    
+    internal var httpMethod: AFMethod = .get
+    internal var postParameters: [String : Any]?
+    
+    internal var requestExtra: [String : Any]?
 }
-

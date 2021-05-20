@@ -34,7 +34,7 @@ class CustomJSONResponseSerializer: ResponseSerializer {
 
     public func serialize(request: URLRequest?, response: HTTPURLResponse?, data rd: Data?, error: Error?) throws -> Any {
         guard error == nil else { throw error! }
-        guard let client = Network.client else {
+        guard let client = Manager.client else {
             return try JSONResponseSerializer(dataPreprocessor: dataPreprocessor, options: options).serialize(request: request, response: response, data: rd, error: error)
         }
         guard var data = rd, !data.isEmpty else {

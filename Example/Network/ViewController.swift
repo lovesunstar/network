@@ -70,9 +70,9 @@ class ViewController: UIViewController {
         // Do any additional setup after loading the view, typically from a nib.
         
         print("Begin synchronized request1")
-        print(Network(configuration: URLSessionConfiguration.default).request("https://httpbin.org/post").query(["key1": "value1"]).post(["foo": "bar"]).syncResponseJSON())
+        print(Network.Manager(configuration: URLSessionConfiguration.default).request("https://httpbin.org/post").query(["key1": "value1"]).post(["foo": "bar"]).syncResponseJSON())
         print("Begin synchronized request2")
-        print(Network.request("https://httpbin.org/post").query(["key2": "value2"]).post(["encode": "json"]).encoding(.json(JSONSerialization.WritingOptions())).syncResponseJSON())
+        print(Network.request("https://httpbin.org/post").query(["key2": "value2"]).post(["encode": "json"]).encoding(.json).syncResponseJSON())
         
         let request = Network.request("https://httpbin.org/get").query(["foo": "bar"]).build()
         
@@ -86,7 +86,7 @@ class ViewController: UIViewController {
             print("Request4", urlResponse ?? "", jsonData ?? "", error ?? "")
         })
         
-        Network.request("https://httpbin.org/post").query(["foo": "bar"]).post(["foo_p": "bar_p"]).encoding(.json(JSONSerialization.WritingOptions())).build()?.responseJSON(completionHandler: { (_, urlResponse, jsonData, error) -> Void in
+        Network.request("https://httpbin.org/post").query(["foo": "bar"]).post(["foo_p": "bar_p"]).encoding(.json).build()?.responseJSON(completionHandler: { (_, urlResponse, jsonData, error) -> Void in
             print("Request5", urlResponse ?? "", jsonData ?? "", error ?? "")
         })
         let data: Data = {
